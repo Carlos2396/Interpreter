@@ -1,4 +1,5 @@
 /* Carlos Augusto Amador Manilla A01329447 */
+/* Angel Roberto Ruiz Mendoza A01324489 */
 
 #ifndef SYMBOL
 #define SYMBOL
@@ -18,14 +19,14 @@
  * Types definitions
 */
 typedef enum {integer, real, null} Type;
-typedef enum {null} Instruction;
+typedef enum {id, intnum, realnum, null} Instructions;
 typedef union {
     int intV;
     float realV;
 } Value;
 
 typedef struct Node {
-    Instruction instruction;
+    Instructions instruction;
     Type type;
     Value val;  
     Node* symbolTableNode;
@@ -38,8 +39,13 @@ typedef struct Node {
 /**
  * Symbol table vars
 */
-treeNode** root;
+treeNode* root;
 
-treeNode* createTreeNode(Instruction ins, Type y, Value v, Node* tblNode, treeNode* l, treeNode* c, treeNode* r);
+/*
+ * Methods
+*/
+treeNode* createTreeNode(Instructions ins, Type y, Value v, Node* tblNode, treeNode* l, treeNode* c, treeNode* r);
+void postOrder(treeNode* tRoot);
+void inOrder(treeNode* tRoot);
 
 #endif

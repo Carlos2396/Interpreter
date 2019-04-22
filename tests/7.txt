@@ -1,0 +1,27 @@
+program
+programID
+
+let ptr, sVar: integer;
+let dob: real;
+let a, sVar: real
+ 
+begin
+    read sVar;
+    read dob;
+
+    begin
+        while ptr > 10 do 
+            ptr := ptr - 1;
+
+        if sVar > 5 then
+            if sVar < 10 then
+                sVar := sVar + 1
+            else
+                sVar := 5
+    end;
+
+    begin
+        print sVar;
+        print dob
+    end
+end

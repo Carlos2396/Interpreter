@@ -1,0 +1,13 @@
+program algo 
+    let x,y : integer
+begin
+    read x; 
+    print (8+5.5);
+
+    if x > y then
+        x := 0
+    else 
+        y := 0;
+
+    read x
+end

@@ -1,0 +1,9 @@
+program
+programID
+begin
+    if sVar > 5 then
+        if sVar < 10 then
+            sVar := sVar + 1
+        else 
+            sVar := 5   
+end

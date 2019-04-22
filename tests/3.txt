@@ -1,0 +1,11 @@
+program programID
+
+let myVar, sVar, resVar, multVar, divVar:real
+
+begin
+    myVar := 15;
+    sVar := myVar;
+    resVar := 15 - 2;
+    multVar := 15 * 2;
+    divVar := sVar /myVar
+end

@@ -1,0 +1,6 @@
+program programID
+let ptr:integer
+begin
+    while ptr > 10 do
+        ptr := ptr - 1
+end

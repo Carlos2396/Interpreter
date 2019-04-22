@@ -1,0 +1,8 @@
+program programID
+
+let myVar, sVar: integer
+
+begin
+    myVar := 15;
+    sVar := myVar
+end

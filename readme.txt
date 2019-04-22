@@ -1,12 +1,14 @@
 Carlos Augusto Amador Manilla
+Angel Roberto Ruiz Mendoza
+
 Compiladores
-Tarea 5
+Tarea 6
 
 Instrucciones de compilado
 
 Ejecutar los siguientes comandos:
     $ bison -d compiler.y
-    $ flex compilar.l
+    $ flex compiler.l
     $ gcc lex.yy.c compiler.tab.c symbolTable.c -lfl
 
 Posteriormente, ejecutar pasando como parametro el archivo con el código fuente.

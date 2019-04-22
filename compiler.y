@@ -1,4 +1,5 @@
 /* Carlos Augusto Amador Manilla A01329447 */
+/* Angel Roberto Ruiz Mendoza A01324489 */
 
 %{
   #include "symbolTable.h"
@@ -103,35 +104,60 @@ stmt_lst:
   }
 ;
 
-expr: term exprPrime
+expr:   expr PLUS term{
+          $$ = createTreeNode(IPLUS, null, 0, NULL, $1, NULL, $3);
+        } |
+        expr MINUS term{
+          $$ = createTreeNode(IMINUS, null, 0, NULL, $1, NULL, $3);
+        } |
+        term{
+          return $1;
+        }
 ;
 
-exprPrime: 
-  PLUS term |
-  MINUS term |
-  term |
-;
-
-term: factor termPrime
-;
-
-termPrime: 
-  ASTERISK factor |
-  SLASH factor |
-  factor |
+term: term ASTERISK factor{
+        $$ = createTreeNode(IASTERISK, null, 0, NULL, $1, NULL, $3);
+      } |
+      term SLASH factor{
+        $$ = createTreeNode(ISLASH, null, 0, NULL, $1, NULL, $3);
+      } |
+      factor{
+        return $1;
+      }
 ;
 
 factor: 
-  PARENTHESIS expr CPARENTHESIS |
-  IDENTIFIER { if(findSymbol($1) == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; } } |
-  INTV |
-  FLOATV
+  PARENTHESIS expr CPARENTHESIS{
+    treeNode* parNode = createTreeNode(ICPARENTHESIS, null, 0, NULL, NULL, NULL, NULL);
+    $$ = createTreeNode(IPARENTHESIS, null, 0, NULL, $2, NULL, parNode);
+  } |
+  IDENTIFIER  { 
+                Node* symbol = findSymbol($1);
+                if(symbol == NULL) {
+                   sprintf(error, "Symbol %s not found", $1); 
+                   yyerror(error); 
+                   return 1; 
+                } 
+                $$ =  createTreeNode(IID, null, 0, symbol, NULL, NULL, NULL);
+              } |
+  INTV {
+    $$ = createTreeNode(IINTNUM, integer, $1, NULL, NULL, NULL, NULL);
+  } |
+  FLOATV {
+    $$ = createTreeNode(IREALNUM, real, $1, NULL, NULL, NULL, NULL);
+  }
 ;
 
 expression: 
-  expr SMALLER expr |
-  expr BIGGER expr |
-  expr EQUAL expr
+  expr SMALLER expr {
+    $$ = createTreeNode(ISMALLER, null, 0, NULL, $1, NULL, $3);
+  } |
+  expr BIGGER expr {
+    $$ = createTreeNode(IBIGGER, null, 0, NULL, $1, NULL, $3);
+  }|
+  expr EQUAL expr{
+    $$ = createTreeNode(IEQUAL, null, 0, NULL, $1, NULL, $3);
+  }
 ;
 
 %%

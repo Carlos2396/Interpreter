@@ -2,6 +2,8 @@
 
 %{
   #include "symbolTable.h"
+  #include "syntaxTree"
+
   char*error; // to store error messages
   llNode*rem; // to check for errors in insertion to the symbol table
 
@@ -30,8 +32,12 @@
 }
 
 %%
-prog: PROGRAM IDENTIFIER opt_decls BEGINS opt_stmts END { YYACCEPT; }
-;
+prog: PROGRAM IDENTIFIER opt_decls BEGINS opt_stmts END {
+  treeNode endNode = createTreeNode(IEND, null, 0, NULL, NULL, NULL, NULL); 
+  root = createTreeNode(IBEGIN, null, 0, NULL, $5, NULL, endNode);
+
+  YYACCEPT; 
+};
 
 opt_decls: decl_lst | 
 ;
@@ -52,19 +58,49 @@ type: INT { if((rem = insertRemaining($1)) != NULL) {sprintf(error, "Symbol %s a
 ;
 
 stmt: 
-  IDENTIFIER ASSIGNMENT expr { if(findSymbol($1) == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1;} } |
-  IF expression THEN stmt |
-  IF expression THEN stmt ELSE stmt |
-  WHILE expression DO stmt |
-  READ IDENTIFIER { if(findSymbol($2) == NULL) { sprintf(error, "Symbol %s not found", $2); yyerror(error); return 1; } } |
-  PRINT expr |
-  BEGINS opt_stmts END
+  IDENTIFIER ASSIGNMENT expr { 
+    if(findSymbol($1) == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1;} 
+    $$ = createTreeNode(IASSIGNMENT, null, 0, NULL, $1, NULL, $3); 
+  } |
+  IF expression THEN stmt { 
+    treeNode*thenNode = createTreeNode(ITHEN, null, 0, NULL, $4, NULL, NULL);
+    $$ = createTreeNode(IIF, null, 0, NULL, $2, NULL, thenNode); 
+  } |
+  IF expression THEN stmt ELSE stmt { 
+    treeNode*thenNode = createTreeNode(ITHEN, null, 0, NULL, $4, NULL, NULL);
+    treeNode*elseNode = createTreeNode(ITHEN, null, 0, NULL, $6, NULL, NULL); 
+    $$ = createTreeNode(IIF, null, 0, NULL, $2, thenNode, elseNode);
+  } |
+  WHILE expression DO stmt {
+    $doNode = createTreeNode(IDO, null, 0, NULL, $4, NULL, NULL);
+    $$ = createTreeNode(IWHILE, null, 0, NULL, $2, NULL, doNode);
+  } |
+  READ IDENTIFIER { 
+    Node*symbol = findSymbol($2);
+    if(symbol == NULL) { sprintf(error, "Symbol %s not found", $2); yyerror(error); return 1; }
+    treeNode*idNode = createTreeNode(IID, null, 0, symbol, NULL, NULL, NULL);
+    $$ = createTreeNode(IREAD, null, 0, NULL, idNode, NULL, NULL, NULL);
+  } |
+  PRINT expr {
+    $$ = createTreeNode(IPRINT, null, 0, NULL, $2, NULL, NULL);
+  } |
+  BEGINS opt_stmts END {
+    treeNode*endNode = createTreeNode(IEND, null, 0, NULL, NULL, NULL, NULL);
+    $$ = createTreeNode(IBEGIN, null, 0, NULL, $2, NULL, endNode);
+  }
 ;
 
-opt_stmts: stmt_lst | 
+opt_stmts: stmt_lst { return $1; };
+ | { return NULL; } 
 ;
 
-stmt_lst: stmt SEMICOLON stmt_lst | stmt
+stmt_lst: 
+  stmt SEMICOLON stmt_lst { 
+    $$ = createTreeNode(ISEMICOLON, null, 0, NULL, $1, NULL, $3); 
+  } | 
+  stmt { 
+    return $1; 
+  }
 ;
 
 expr: term exprPrime

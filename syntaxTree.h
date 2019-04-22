@@ -19,7 +19,7 @@
  * Types definitions
 */
 typedef enum {integer, real, null} Type;
-typedef enum {id, intnum, realnum, null} Instructions;
+typedef enum {IPROGRAM, IID, IBEGIN, IEND, ILET, IINTEGER, IREAL, IIF, ITHEN, IELSE, IWHILE, IDO, IREAD, IPRINT, ISEMICOLON, IPLUS, IMINUS, IASTERISK, ISLASH, IPARENTHESIS, ICPARENTHESIS, IINTNUM, IREALNUM, ILSMALLER, IBIGGER, IEQUAL,  IDOT, ICOLON, IBRACKET, ICBRACKET} Instructions;
 typedef union {
     int intV;
     float realV;

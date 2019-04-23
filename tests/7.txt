@@ -3,7 +3,7 @@ programID
 
 let ptr, sVar: integer;
 let dob: real;
-let a, sVar: real
+let a, aVar: real
  
 begin
     read sVar;

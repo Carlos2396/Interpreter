@@ -6,7 +6,8 @@
 /*
  * Methods
 */
-treeNode* createTreeNode(Instructions ins, Type t, Value v, Node* tblNode, treeNode* l, treeNode* c, treeNode* r){
+treeNode* createTreeNode(Instructions ins, Type t, Value v, Node* tblNode, treeNode* l, treeNode* c, treeNode* r) {
+    printf("Create node: %d\n", ins);
     treeNode* newN = (treeNode*)malloc(sizeof(treeNode*));
     newN->instruction = ins;
     newN->val = v;
@@ -91,10 +92,10 @@ void postOrder(treeNode* tRoot){
             inst = ")";
             break;
         case IINTNUM:
-            sprintf(inst, "%d", tRoot->val->intV);
+            sprintf(inst, "%d", tRoot->val.intV);
             break;
         case IREALNUM:
-            sprintf(inst, "%f", tRoot->val->realV);
+            sprintf(inst, "%f", tRoot->val.realV);
             break;
         case ISMALLER:
             inst = "<";

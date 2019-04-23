@@ -1,8 +1,8 @@
 /* Carlos Augusto Amador Manilla A01329447 */
 /* Angel Roberto Ruiz Mendoza A01324489 */
 
-#ifndef SYMBOL
-#define SYMBOL
+#ifndef TREE
+#define TREE
 
 #include <string.h>
 #include <stdlib.h>
@@ -18,21 +18,23 @@
 /**
  * Types definitions
 */
-typedef enum {integer, real, null} Type;
-typedef enum {IPROGRAM, IID, IBEGIN, IEND, ILET, IINTEGER, IREAL, IIF, ITHEN, IELSE, IWHILE, IDO, IREAD, IPRINT, ISEMICOLON, IPLUS, IMINUS, IASTERISK, ISLASH, IPARENTHESIS, ICPARENTHESIS, IINTNUM, IREALNUM, ISMALLER, IBIGGER, IEQUAL,  IDOT, ICOLON, IBRACKET, ICBRACKET} Instructions;
-typedef union {
+//typedef enum {integer, real, null} Type;
+
+typedef enum {IPROGRAM, IID, IBEGIN, IEND, ILET, IINTEGER, IREAL, IIF, ITHEN, IELSE, IWHILE, IDO, IREAD, IPRINT, ISEMICOLON, IPLUS, IMINUS, IASTERISK, ISLASH, IPARENTHESIS, ICPARENTHESIS, IINTNUM, IREALNUM, ISMALLER, IBIGGER, IEQUAL,  IDOT, ICOLON, IBRACKET, ICBRACKET, IASSIGNMENT, IIDENTIFIER} Instructions;
+
+/*typedef union {
     int intV;
     float realV;
-} Value;
+} Value;*/
 
-typedef struct Node {
+typedef struct treeNode {
     Instructions instruction;
     Type type;
     Value val;  
     Node* symbolTableNode;
-    treeNode* left;
-    treeNode* center;
-    treeNode* right;
+    struct treeNode* left;
+    struct treeNode* center;
+    struct treeNode* right;
 } treeNode;
 
 
@@ -40,12 +42,11 @@ typedef struct Node {
  * Symbol table vars
 */
 treeNode* root;
-
 /*
  * Methods
 */
 treeNode* createTreeNode(Instructions ins, Type y, Value v, Node* tblNode, treeNode* l, treeNode* c, treeNode* r);
 void postOrder(treeNode* tRoot);
-void inOrder(treeNode* tRoot);
+//void inOrder(treeNode* tRoot);
 
 #endif

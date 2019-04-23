@@ -19,7 +19,7 @@
 /**
  * Types definitions
 */
-typedef enum {integer, real} Type;
+typedef enum {integer, real, null} Type;
 
 typedef union {
     int intV;

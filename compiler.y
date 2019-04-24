@@ -286,14 +286,14 @@ factor:
   } |
   INTV {
     #ifdef _PRINT_STACK_TRACE
-    printf("factor -> IntV: %d\n", ++counter);
+    printf("factor -> IntV -> %d: %d\n", $1, ++counter);
     #endif
 
     $$ = createTreeNode(IINTNUM, integer, (Value)$1, NULL, NULL, NULL, NULL);
   } |
   FLOATV {
     #ifdef _PRINT_STACK_TRACE
-    printf("factor -> FloatV: %d\n", ++counter);
+    printf("factor -> FloatV -> %f: %d\n", $1, ++counter);
     #endif
 
     $$ = createTreeNode(IREALNUM, real, (Value)$1, NULL, NULL, NULL, NULL);
@@ -357,7 +357,7 @@ int main(int argc, char **argv) {
     printSymbolTable();
 
     printf("\nSystax Tree ------------------------\n");
-    inOrder(root);
+    postOrder(root);
 
     return 0;
 }

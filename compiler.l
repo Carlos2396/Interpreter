@@ -51,8 +51,8 @@ procedure     { return PROCEDURE; }
 program       { return PROGRAM; }
 {IDENTIFIERE} { yylval.stringVal = strdup(yytext); return IDENTIFIER; }
 
-{INTE}          { return INTV; }
-{FLOATE}        { return FLOATV; }
+{INTE}          { yylval.intVal = atoi(yytext); return INTV; }
+{FLOATE}        { yylval.floatVal = atof(yytext); return FLOATV; }
 
 "+"             { return PLUS; }
 "-"             { return MINUS; }

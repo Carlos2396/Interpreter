@@ -9,7 +9,7 @@ Instrucciones de compilado
 Ejecutar los siguientes comandos:
     $ bison -d compiler.y
     $ flex compiler.l
-    $ gcc lex.yy.c compiler.tab.c symbolTable.c syntaxTree.c -lfl
-    
+    $ gcc *.c -lfl
+
 Posteriormente, ejecutar pasando como parametro el archivo con el código fuente.
     $ ./a.out tests/test.txt

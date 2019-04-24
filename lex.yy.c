@@ -993,12 +993,12 @@ YY_RULE_SETUP
 case 23:
 YY_RULE_SETUP
 #line 54 "compiler.l"
-{ return INTV; }
+{ yylval.intVal = atoi(yytext); return INTV; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 55 "compiler.l"
-{ return FLOATV; }
+{ yylval.floatVal = atof(yytext); return FLOATV; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP

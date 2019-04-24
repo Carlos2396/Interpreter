@@ -1665,7 +1665,7 @@ yyreduce:
 #line 287 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
-    printf("factor -> IntV: %d\n", ++counter);
+    printf("factor -> IntV -> %d: %d\n", (yyvsp[0].intVal), ++counter);
     #endif
 
     (yyval.nodePointer) = createTreeNode(IINTNUM, integer, (Value)(yyvsp[0].intVal), NULL, NULL, NULL, NULL);
@@ -1677,7 +1677,7 @@ yyreduce:
 #line 294 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
-    printf("factor -> FloatV: %d\n", ++counter);
+    printf("factor -> FloatV -> %f: %d\n", (yyvsp[0].floatVal), ++counter);
     #endif
 
     (yyval.nodePointer) = createTreeNode(IREALNUM, real, (Value)(yyvsp[0].floatVal), NULL, NULL, NULL, NULL);
@@ -1984,7 +1984,7 @@ int main(int argc, char **argv) {
     printSymbolTable();
 
     printf("\nSystax Tree ------------------------\n");
-    inOrder(root);
+    postOrder(root);
 
     return 0;
 }

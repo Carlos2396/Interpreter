@@ -93,13 +93,13 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 30 "compiler.y" /* yacc.c:1909  */
+#line 32 "compiler.y" /* yacc.c:1909  */
 
   int intVal;
   float floatVal;
   char*stringVal;
   int type;
-  struct treeNode* nodePointer;
+  struct TreeNode* nodePointer;
 
 #line 105 "compiler.tab.h" /* yacc.c:1909  */
 };

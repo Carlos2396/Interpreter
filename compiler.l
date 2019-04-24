@@ -4,8 +4,7 @@
 
 %{
     #include "compiler.tab.h"
-    #include "symbolTable.h"
-    #include "syntaxTree.h"
+    #include "definitions.h"
 
     int lines = 1;
 %}

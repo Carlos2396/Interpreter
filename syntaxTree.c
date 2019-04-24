@@ -1,14 +1,14 @@
 /* Carlos Augusto Amador Manilla A01329447 */
 /* Angel Roberto Ruiz Mendoza A01324489 */
 
+#include "definitions.h"
 #include "syntaxTree.h"
 
 /*
  * Methods
 */
-treeNode* createTreeNode(Instructions ins, Type t, Value v, Node* tblNode, treeNode* l, treeNode* c, treeNode* r) {
-    printf("Create node: %d\n", ins);
-    treeNode* newN = (treeNode*)malloc(sizeof(treeNode*));
+TreeNode*createTreeNode(Instruction ins, Type t, Value v, SymbolNode* tblNode, TreeNode* l, TreeNode* c, TreeNode* r) {
+    TreeNode* newN = (TreeNode*)malloc(sizeof(TreeNode));
     newN->instruction = ins;
     newN->val = v;
     newN->type = t;
@@ -19,94 +19,117 @@ treeNode* createTreeNode(Instructions ins, Type t, Value v, Node* tblNode, treeN
     return newN;
 }
 
-void postOrder(treeNode* tRoot){
-    if(tRoot == NULL)
-        return;
-    postOrder(tRoot->left);
-    postOrder(tRoot->center);
-    postOrder(tRoot->right);
-    char* inst;
-    switch (tRoot->instruction)
-    {
+char*getInstructionText(TreeNode*tRoot) {
+    char* text = (char*)malloc(sizeof(char)*1000);
+    switch(tRoot->instruction) {
         case IPROGRAM:
-            inst = "program";
+            text = "program";
             break;
-        case IID:
-            inst = tRoot->symbolTableNode->identifier;
+        case IIDENTIFIER:
+            text = tRoot->symbolTableNode->identifier;
             break;
         case IBEGIN:
-            inst = "begin";
+            text = "begin";
             break;
         case IEND:
-            inst = "end";
+            text = "end";
             break;
         case ILET:
-            inst = "let";
+            text = "let";
             break;
         case IINTEGER:
-            inst = "integer";
+            text = "integer";
             break;
         case IREAL:
-            inst = "real";
+            text = "real";
             break;
         case IIF:
-            inst = "if";
+            text = "if";
             break;
         case ITHEN:
-            inst = "then";
+            text = "then";
             break;
         case IELSE:
-            inst = "else";
+            text = "else";
             break;
         case IWHILE:
-            inst = "while";
+            text = "while";
             break;
         case IDO:
-            inst = "do";
+            text = "do";
             break;
         case IREAD:
-            inst = "read";
+            text = "read";
             break;
         case IPRINT:
-            inst = "print";
+            text = "print";
             break;
         case ISEMICOLON:
-            inst = ";";
+            text = ";";
             break;
         case IPLUS:
-            inst = "+";
+            text = "+";
             break;
         case IMINUS:
-            inst = "-";
+            text = "-";
             break;
         case IASTERISK:
-            inst = "*";
+            text = "*";
             break;
         case ISLASH:
-            inst = "/";
+            text = "/";
             break;
         case IPARENTHESIS:
-            inst = "(";
+            text = "(";
             break;
         case ICPARENTHESIS:
-            inst = ")";
+            text = ")";
             break;
         case IINTNUM:
-            sprintf(inst, "%d", tRoot->val.intV);
+            sprintf(text, "%d", tRoot->val.intV);
             break;
         case IREALNUM:
-            sprintf(inst, "%f", tRoot->val.realV);
+            sprintf(text, "%f", tRoot->val.realV);
             break;
         case ISMALLER:
-            inst = "<";
+            text = "<";
             break;
         case IBIGGER:
-            inst = ">";
+            text = ">";
             break;
         case IEQUAL:
-            inst = "=";
+            text = "=";
+            break;
+        case IASSIGNMENT:
+            text = "Assignment";
             break;
         default:
             break;
     }
+
+    return text;
+}
+
+void postOrder(TreeNode* tRoot){
+    if(tRoot == NULL) return;
+
+    postOrder(tRoot->left);
+    postOrder(tRoot->center);
+    postOrder(tRoot->right);
+
+    char*text = getInstructionText(tRoot);
+
+    printf("%s\n", text);
+}
+
+void inOrder(TreeNode* tRoot){
+    if(tRoot == NULL) return;
+
+    postOrder(tRoot->left);
+
+    char*text = getInstructionText(tRoot);
+    printf("%s\n", text);
+    
+    postOrder(tRoot->center);
+    postOrder(tRoot->right);
 }

@@ -1,6 +1,7 @@
 /* Carlos Augusto Amador Manilla A01329447 */
 /* Angel Roberto Ruiz Mendoza A01324489 */
 
+#include "definitions.h"
 #include "symbolTable.h"
 
 /*
@@ -8,12 +9,12 @@
 */
 
 void initTable() {
-    table = (Node**)calloc(sizeof(Node*),SIZE);
+    table = (SymbolNode**)calloc(sizeof(SymbolNode*), SIZE);
     remaining = NULL;
 }
 
-Node*createNode(char*id, Type t, Value val) {
-    Node*temp = (Node*)malloc(sizeof(Node));
+SymbolNode*createSymbolNode(char*id, Type t, Value val) {
+    SymbolNode*temp = (SymbolNode*)malloc(sizeof(SymbolNode));
     temp->identifier = strdup(id);
     temp->type = t;
     temp->val = val;
@@ -31,12 +32,12 @@ int hash(char*c) {
     return sum%SIZE;
 }
 
-Node*findSymbol(char*id) {
+SymbolNode*findSymbol(char*id) {
     int i = hash(id);
 
     if(table[i] == NULL) return NULL;
 
-    Node* ptr = table[i];
+    SymbolNode* ptr = table[i];
     while(ptr != NULL && strcmp(id, ptr->identifier) != 0) {
         ptr = ptr->next;
     }
@@ -46,13 +47,13 @@ Node*findSymbol(char*id) {
 
 int insertSymbol(char*id, Type type, Value val) {
     int i = hash(id);
-    Node*node = createNode(id, type, val);
+    SymbolNode*node = createSymbolNode(id, type, val);
    
     if(table[i] == NULL) {
         table[i] = node;
         return 1;
     }
-    Node*ptr = table[i];
+    SymbolNode*ptr = table[i];
     while(ptr->next != NULL) {
         if(strcmp(id, ptr->identifier) == 0) return 0;
         
@@ -67,7 +68,7 @@ int insertSymbol(char*id, Type type, Value val) {
 
 int removeSymbol(char*id) {
     int i = hash(id);
-    Node*node = findSymbol(id);
+    SymbolNode*node = findSymbol(id);
 
     if(id == NULL) return 0;
 
@@ -76,7 +77,7 @@ int removeSymbol(char*id) {
         free(node);
     }
     else {
-        Node*next = node->next;
+        SymbolNode*next = node->next;
         node->identifier = next->identifier;
         node->type = next->type;
         node->val = next->val;
@@ -88,7 +89,7 @@ int removeSymbol(char*id) {
 }
 
 int modifySymbol(char*id, Value val) {
-    Node*node = findSymbol(id);
+    SymbolNode*node = findSymbol(id);
 
     if(node == NULL) return 0;
     
@@ -98,7 +99,9 @@ int modifySymbol(char*id, Value val) {
 }
 
 void addRemaining(char*id) {
-    llNode*temp = (llNode*)malloc(sizeof(llNode));
+    if(id == NULL) return;
+
+    LLNode*temp = (LLNode*)malloc(sizeof(LLNode));
     temp->identifier = strdup(id);
 
     if(remaining == NULL) {
@@ -106,8 +109,7 @@ void addRemaining(char*id) {
         return;
     }
 
-    
-    llNode*ptr = remaining;
+    LLNode*ptr = remaining;
     while(ptr->next != NULL) {
         ptr = ptr->next;
     }
@@ -115,7 +117,7 @@ void addRemaining(char*id) {
     ptr->next = temp;
 }
 
-llNode*insertRemaining(Type type) {
+LLNode*insertRemaining(Type type) {
     while(remaining != NULL) {
         if(!insertSymbol(remaining->identifier, type, (Value)0)) return remaining;
         remaining = remaining->next;
@@ -139,7 +141,7 @@ void printSymbolTable() {
     for(i=0; i<SIZE; i++) {
         if(table[i] == NULL) continue;
 
-        Node*ptr = table[i];
+        SymbolNode*ptr = table[i];
         while(ptr != NULL) {
             printf("|%10s |%10s |\n", ptr->identifier, ptr->type == integer? "integer": "real");
             printDashes(25);

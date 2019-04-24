@@ -4,49 +4,18 @@
 #ifndef TREE
 #define TREE
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include "symbolTable.h"
-/**
- * structs and vals definitions
-*/
-#define RESET   "\x1b[0m"
-#define RED     "\x1b[31m"
-#define GREEN   "\x1b[32m"
+#include "definitions.h"
 
 /**
- * Types definitions
+ * Syntax tree root pointer
 */
-//typedef enum {integer, real, null} Type;
+TreeNode*root;
 
-typedef enum {IPROGRAM, IID, IBEGIN, IEND, ILET, IINTEGER, IREAL, IIF, ITHEN, IELSE, IWHILE, IDO, IREAD, IPRINT, ISEMICOLON, IPLUS, IMINUS, IASTERISK, ISLASH, IPARENTHESIS, ICPARENTHESIS, IINTNUM, IREALNUM, ISMALLER, IBIGGER, IEQUAL,  IDOT, ICOLON, IBRACKET, ICBRACKET, IASSIGNMENT, IIDENTIFIER} Instructions;
-
-/*typedef union {
-    int intV;
-    float realV;
-} Value;*/
-
-typedef struct treeNode {
-    Instructions instruction;
-    Type type;
-    Value val;  
-    Node* symbolTableNode;
-    struct treeNode* left;
-    struct treeNode* center;
-    struct treeNode* right;
-} treeNode;
-
-
-/**
- * Symbol table vars
-*/
-treeNode* root;
 /*
  * Methods
 */
-treeNode* createTreeNode(Instructions ins, Type y, Value v, Node* tblNode, treeNode* l, treeNode* c, treeNode* r);
-void postOrder(treeNode* tRoot);
-//void inOrder(treeNode* tRoot);
+TreeNode*createTreeNode(Instruction ins, Type y, Value v, SymbolNode* tblNode, TreeNode* l, TreeNode* c, TreeNode* r);
+void postOrder(TreeNode* tRoot);
+void inOrder(TreeNode* tRoot);
 
 #endif

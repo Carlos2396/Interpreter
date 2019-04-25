@@ -219,14 +219,26 @@ expr:
     printf("expr -> Plus: %d\n", ++counter);
     #endif
 
-    $$ = createTreeNode(IPLUS, null, (Value)0, NULL, $1, NULL, $3);
+    if($1->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
+      yyerror(error); 
+      return 1;
+    }
+
+    $$ = createTreeNode(IPLUS, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   expr MINUS term {
     #ifdef _PRINT_STACK_TRACE
     printf("expr -> Minus: %d\n", ++counter);
     #endif
 
-    $$ = createTreeNode(IMINUS, null, (Value)0, NULL, $1, NULL, $3);
+    if($1->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
+      yyerror(error); 
+      return 1;
+    }
+
+    $$ = createTreeNode(IMINUS, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   term {
     #ifdef _PRINT_STACK_TRACE
@@ -243,14 +255,26 @@ term:
     printf("term -> Asterisk: %d\n", ++counter);
     #endif
 
-    $$ = createTreeNode(IASTERISK, null, (Value)0, NULL, $1, NULL, $3);
+    if($1->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
+      yyerror(error); 
+      return 1;
+    }
+
+    $$ = createTreeNode(IASTERISK, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   term SLASH factor {
     #ifdef _PRINT_STACK_TRACE
     printf("term -> Slash: %d\n", ++counter);
     #endif
 
-    $$ = createTreeNode(ISLASH, null, (Value)0, NULL, $1, NULL, $3);
+    if($1->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
+      yyerror(error); 
+      return 1;
+    }
+
+    $$ = createTreeNode(ISLASH, %1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   factor {
     #ifdef _PRINT_STACK_TRACE
@@ -267,8 +291,8 @@ factor:
     printf("factor -> Parenthesis: %d\n", ++counter);
     #endif
 
-    TreeNode* parNode = createTreeNode(ICPARENTHESIS, null, (Value)0, NULL, NULL, NULL, NULL);
-    $$ = createTreeNode(IPARENTHESIS, null, (Value)0, NULL, $2, NULL, parNode);
+    TreeNode* parNode = createTreeNode(ICPARENTHESIS, $2->type, (Value)0, NULL, NULL, NULL, NULL);
+    $$ = createTreeNode(IPARENTHESIS, $2->type, (Value)0, NULL, $2, NULL, parNode);
   } |
   IDENTIFIER {
     #ifdef _PRINT_STACK_TRACE
@@ -281,8 +305,8 @@ factor:
         yyerror(error); 
         return 1; 
     }
-
-    $$ =  createTreeNode(IIDENTIFIER, null, (Value)0, symbol, NULL, NULL, NULL);
+    Type symType = symbol-> type;
+    $$ =  createTreeNode(IIDENTIFIER, symType, (Value)0, symbol, NULL, NULL, NULL);
   } |
   INTV {
     #ifdef _PRINT_STACK_TRACE
@@ -306,6 +330,12 @@ expression:
     printf("expression -> Smaller: %d\n", ++counter);
     #endif
 
+    if($1->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
+      yyerror(error); 
+      return 1;
+    }
+
     $$ = createTreeNode(ISMALLER, null, (Value)0, NULL, $1, NULL, $3);
   } |
   expr BIGGER expr {
@@ -313,12 +343,24 @@ expression:
     printf("expression -> Bigger: %d\n", ++counter);
     #endif
 
+    if($1->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
+      yyerror(error); 
+      return 1;
+    }
+
     $$ = createTreeNode(IBIGGER, null, (Value)0, NULL, $1, NULL, $3);
   } |
   expr EQUAL expr{
     #ifdef _PRINT_STACK_TRACE
     printf("expression -> Equal: %d\n", ++counter);
     #endif
+
+    if($1->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
+      yyerror(error); 
+      return 1;
+    }
 
     $$ = createTreeNode(IEQUAL, null, (Value)0, NULL, $1, NULL, $3);
   }

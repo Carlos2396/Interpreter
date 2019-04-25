@@ -122,8 +122,14 @@ stmt:
     printf("stmt -> Assignment: %d\n", ++counter);
     #endif
 
+
     SymbolNode*symbol = findSymbol($1);
     if(findSymbol($1) == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; } 
+    if(symbol->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", symbol->type, $3->type); 
+      yyerror(error); 
+      return 1;
+    }
     TreeNode*idNode = createTreeNode(IIDENTIFIER, null, (Value)0, symbol, NULL, NULL, NULL);
     $$ = createTreeNode(IASSIGNMENT, null, (Value)0, NULL, idNode, NULL, $3); 
   } |
@@ -274,7 +280,7 @@ term:
       return 1;
     }
 
-    $$ = createTreeNode(ISLASH, %1->type, (Value)0, NULL, $1, NULL, $3);
+    $$ = createTreeNode(ISLASH, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   factor {
     #ifdef _PRINT_STACK_TRACE

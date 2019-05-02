@@ -485,9 +485,9 @@ static const yytype_uint8 yytranslate[] =
 static const yytype_uint16 yyrline[] =
 {
        0,    41,    41,    53,    57,    65,    70,    78,    86,    93,
-     103,   110,   120,   136,   144,   153,   161,   171,   178,   189,
-     196,   206,   213,   223,   236,   249,   259,   272,   285,   295,
-     303,   317,   324,   334,   347,   360
+     103,   110,   120,   137,   145,   154,   162,   173,   180,   191,
+     198,   208,   215,   225,   238,   251,   261,   274,   287,   297,
+     305,   319,   326,   336,   349,   362
 };
 #endif
 
@@ -1424,19 +1424,20 @@ yyreduce:
 
     SymbolNode*symbol = findSymbol((yyvsp[-2].stringVal));
     if(findSymbol((yyvsp[-2].stringVal)) == NULL) { sprintf(error, "Symbol %s not found", (yyvsp[-2].stringVal)); yyerror(error); return 1; } 
-    if(symbol->type != (yyvsp[0].nodePointer)->type){
+    if(symbol->type != (yyvsp[0].nodePointer)->type) {
       sprintf(error, "Type mismatch, type %d is not type %d", symbol->type, (yyvsp[0].nodePointer)->type); 
       yyerror(error); 
       return 1;
     }
+    
     TreeNode*idNode = createTreeNode(IIDENTIFIER, null, (Value)0, symbol, NULL, NULL, NULL);
     (yyval.nodePointer) = createTreeNode(IASSIGNMENT, null, (Value)0, NULL, idNode, NULL, (yyvsp[0].nodePointer)); 
   }
-#line 1436 "compiler.tab.c" /* yacc.c:1646  */
+#line 1437 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 136 "compiler.y" /* yacc.c:1646  */
+#line 137 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("stmt -> If Then: %d\n", ++counter);
@@ -1445,25 +1446,25 @@ yyreduce:
     TreeNode*thenNode = createTreeNode(ITHEN, null, (Value)0, NULL, (yyvsp[0].nodePointer), NULL, NULL);
     (yyval.nodePointer) = createTreeNode(IIF, null, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, thenNode); 
   }
-#line 1449 "compiler.tab.c" /* yacc.c:1646  */
+#line 1450 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 144 "compiler.y" /* yacc.c:1646  */
+#line 145 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("stmt -> If Then Else: %d\n", ++counter);
     #endif
 
     TreeNode*thenNode = createTreeNode(ITHEN, null, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, NULL);
-    TreeNode*elseNode = createTreeNode(ITHEN, null, (Value)0, NULL, (yyvsp[0].nodePointer), NULL, NULL); 
+    TreeNode*elseNode = createTreeNode(IELSE, null, (Value)0, NULL, (yyvsp[0].nodePointer), NULL, NULL); 
     (yyval.nodePointer) = createTreeNode(IIF, null, (Value)0, NULL, (yyvsp[-4].nodePointer), thenNode, elseNode);
   }
-#line 1463 "compiler.tab.c" /* yacc.c:1646  */
+#line 1464 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 153 "compiler.y" /* yacc.c:1646  */
+#line 154 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("stmt -> While Do: %d\n", ++counter);
@@ -1472,11 +1473,11 @@ yyreduce:
     TreeNode* doNode = createTreeNode(IDO, null, (Value)0, NULL, (yyvsp[0].nodePointer), NULL, NULL);
     (yyval.nodePointer) = createTreeNode(IWHILE, null, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, doNode);
   }
-#line 1476 "compiler.tab.c" /* yacc.c:1646  */
+#line 1477 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 161 "compiler.y" /* yacc.c:1646  */
+#line 162 "compiler.y" /* yacc.c:1646  */
     { 
     #ifdef _PRINT_STACK_TRACE
     printf("stmt -> Read: %d\n", ++counter);
@@ -1484,14 +1485,15 @@ yyreduce:
 
     SymbolNode*symbol = findSymbol((yyvsp[0].stringVal));
     if(symbol == NULL) { sprintf(error, "Symbol %s not found", (yyvsp[0].stringVal)); yyerror(error); return 1; }
-    TreeNode*idNode = createTreeNode(IIDENTIFIER, null, (Value)0, symbol, NULL, NULL, NULL);
+    
+    TreeNode*idNode = createTreeNode(IIDENTIFIER, symbol->type, (Value)0, symbol, NULL, NULL, NULL);
     (yyval.nodePointer) = createTreeNode(IREAD, null, (Value)0, NULL, idNode, NULL, NULL);
   }
-#line 1491 "compiler.tab.c" /* yacc.c:1646  */
+#line 1493 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 171 "compiler.y" /* yacc.c:1646  */
+#line 173 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("stmt -> Print: %d\n", ++counter);
@@ -1499,11 +1501,11 @@ yyreduce:
 
     (yyval.nodePointer) = createTreeNode(IPRINT, null, (Value)0, NULL, (yyvsp[0].nodePointer), NULL, NULL);
   }
-#line 1503 "compiler.tab.c" /* yacc.c:1646  */
+#line 1505 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 178 "compiler.y" /* yacc.c:1646  */
+#line 180 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("stmt -> Begin End: %d\n", ++counter);
@@ -1512,11 +1514,11 @@ yyreduce:
     TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
     (yyval.nodePointer) = createTreeNode(IBEGIN, null, (Value)0, NULL, (yyvsp[-1].nodePointer), NULL, endNode);
   }
-#line 1516 "compiler.tab.c" /* yacc.c:1646  */
+#line 1518 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 189 "compiler.y" /* yacc.c:1646  */
+#line 191 "compiler.y" /* yacc.c:1646  */
     { 
     #ifdef _PRINT_STACK_TRACE
     printf("opt_stmts -> stmt_lst: %d\n", ++counter);
@@ -1524,11 +1526,11 @@ yyreduce:
 
     (yyval.nodePointer) = (yyvsp[0].nodePointer); 
   }
-#line 1528 "compiler.tab.c" /* yacc.c:1646  */
+#line 1530 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 196 "compiler.y" /* yacc.c:1646  */
+#line 198 "compiler.y" /* yacc.c:1646  */
     { 
     #ifdef _PRINT_STACK_TRACE
     printf("opt_stmts -> NOTHING: %d\n", ++counter);
@@ -1536,11 +1538,11 @@ yyreduce:
 
     (yyval.nodePointer) = NULL; 
   }
-#line 1540 "compiler.tab.c" /* yacc.c:1646  */
+#line 1542 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 206 "compiler.y" /* yacc.c:1646  */
+#line 208 "compiler.y" /* yacc.c:1646  */
     { 
     #ifdef _PRINT_STACK_TRACE
     printf("stmt_lst -> stmt ; stmt_lst: %d\n", ++counter);
@@ -1548,11 +1550,11 @@ yyreduce:
 
     (yyval.nodePointer) = createTreeNode(ISEMICOLON, null, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, (yyvsp[0].nodePointer)); 
   }
-#line 1552 "compiler.tab.c" /* yacc.c:1646  */
+#line 1554 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 213 "compiler.y" /* yacc.c:1646  */
+#line 215 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("stmt_lst -> stmt: %d\n", ++counter);
@@ -1560,11 +1562,11 @@ yyreduce:
 
     (yyval.nodePointer) = (yyvsp[0].nodePointer); 
   }
-#line 1564 "compiler.tab.c" /* yacc.c:1646  */
+#line 1566 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 223 "compiler.y" /* yacc.c:1646  */
+#line 225 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("expr -> Plus: %d\n", ++counter);
@@ -1578,11 +1580,11 @@ yyreduce:
 
     (yyval.nodePointer) = createTreeNode(IPLUS, (yyvsp[-2].nodePointer)->type, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, (yyvsp[0].nodePointer));
   }
-#line 1582 "compiler.tab.c" /* yacc.c:1646  */
+#line 1584 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 236 "compiler.y" /* yacc.c:1646  */
+#line 238 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("expr -> Minus: %d\n", ++counter);
@@ -1596,11 +1598,11 @@ yyreduce:
 
     (yyval.nodePointer) = createTreeNode(IMINUS, (yyvsp[-2].nodePointer)->type, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, (yyvsp[0].nodePointer));
   }
-#line 1600 "compiler.tab.c" /* yacc.c:1646  */
+#line 1602 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 249 "compiler.y" /* yacc.c:1646  */
+#line 251 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("expr -> term: %d\n", ++counter);
@@ -1608,11 +1610,11 @@ yyreduce:
 
     (yyval.nodePointer) =  (yyvsp[0].nodePointer);
   }
-#line 1612 "compiler.tab.c" /* yacc.c:1646  */
+#line 1614 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 259 "compiler.y" /* yacc.c:1646  */
+#line 261 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("term -> Asterisk: %d\n", ++counter);
@@ -1626,11 +1628,11 @@ yyreduce:
 
     (yyval.nodePointer) = createTreeNode(IASTERISK, (yyvsp[-2].nodePointer)->type, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, (yyvsp[0].nodePointer));
   }
-#line 1630 "compiler.tab.c" /* yacc.c:1646  */
+#line 1632 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 272 "compiler.y" /* yacc.c:1646  */
+#line 274 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("term -> Slash: %d\n", ++counter);
@@ -1644,11 +1646,11 @@ yyreduce:
 
     (yyval.nodePointer) = createTreeNode(ISLASH, (yyvsp[-2].nodePointer)->type, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, (yyvsp[0].nodePointer));
   }
-#line 1648 "compiler.tab.c" /* yacc.c:1646  */
+#line 1650 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 285 "compiler.y" /* yacc.c:1646  */
+#line 287 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("term -> factor: %d\n", ++counter);
@@ -1656,11 +1658,11 @@ yyreduce:
 
     (yyval.nodePointer) = (yyvsp[0].nodePointer);
   }
-#line 1660 "compiler.tab.c" /* yacc.c:1646  */
+#line 1662 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 295 "compiler.y" /* yacc.c:1646  */
+#line 297 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("factor -> Parenthesis: %d\n", ++counter);
@@ -1669,11 +1671,11 @@ yyreduce:
     TreeNode* parNode = createTreeNode(ICPARENTHESIS, (yyvsp[-1].nodePointer)->type, (Value)0, NULL, NULL, NULL, NULL);
     (yyval.nodePointer) = createTreeNode(IPARENTHESIS, (yyvsp[-1].nodePointer)->type, (Value)0, NULL, (yyvsp[-1].nodePointer), NULL, parNode);
   }
-#line 1673 "compiler.tab.c" /* yacc.c:1646  */
+#line 1675 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 303 "compiler.y" /* yacc.c:1646  */
+#line 305 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("factor -> Identifier: %d\n", ++counter);
@@ -1688,11 +1690,11 @@ yyreduce:
     Type symType = symbol-> type;
     (yyval.nodePointer) =  createTreeNode(IIDENTIFIER, symType, (Value)0, symbol, NULL, NULL, NULL);
   }
-#line 1692 "compiler.tab.c" /* yacc.c:1646  */
+#line 1694 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 317 "compiler.y" /* yacc.c:1646  */
+#line 319 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("factor -> IntV -> %d: %d\n", (yyvsp[0].intVal), ++counter);
@@ -1700,11 +1702,11 @@ yyreduce:
 
     (yyval.nodePointer) = createTreeNode(IINTNUM, integer, (Value)(yyvsp[0].intVal), NULL, NULL, NULL, NULL);
   }
-#line 1704 "compiler.tab.c" /* yacc.c:1646  */
+#line 1706 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 324 "compiler.y" /* yacc.c:1646  */
+#line 326 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("factor -> FloatV -> %f: %d\n", (yyvsp[0].floatVal), ++counter);
@@ -1712,11 +1714,11 @@ yyreduce:
 
     (yyval.nodePointer) = createTreeNode(IREALNUM, real, (Value)(yyvsp[0].floatVal), NULL, NULL, NULL, NULL);
   }
-#line 1716 "compiler.tab.c" /* yacc.c:1646  */
+#line 1718 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 334 "compiler.y" /* yacc.c:1646  */
+#line 336 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("expression -> Smaller: %d\n", ++counter);
@@ -1728,13 +1730,13 @@ yyreduce:
       return 1;
     }
 
-    (yyval.nodePointer) = createTreeNode(ISMALLER, null, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, (yyvsp[0].nodePointer));
+    (yyval.nodePointer) = createTreeNode(ISMALLER, (yyvsp[-2].nodePointer)->type, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, (yyvsp[0].nodePointer));
   }
-#line 1734 "compiler.tab.c" /* yacc.c:1646  */
+#line 1736 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 347 "compiler.y" /* yacc.c:1646  */
+#line 349 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("expression -> Bigger: %d\n", ++counter);
@@ -1746,13 +1748,13 @@ yyreduce:
       return 1;
     }
 
-    (yyval.nodePointer) = createTreeNode(IBIGGER, null, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, (yyvsp[0].nodePointer));
+    (yyval.nodePointer) = createTreeNode(IBIGGER, (yyvsp[-2].nodePointer)->type, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, (yyvsp[0].nodePointer));
   }
-#line 1752 "compiler.tab.c" /* yacc.c:1646  */
+#line 1754 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 360 "compiler.y" /* yacc.c:1646  */
+#line 362 "compiler.y" /* yacc.c:1646  */
     {
     #ifdef _PRINT_STACK_TRACE
     printf("expression -> Equal: %d\n", ++counter);
@@ -1764,13 +1766,13 @@ yyreduce:
       return 1;
     }
 
-    (yyval.nodePointer) = createTreeNode(IEQUAL, null, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, (yyvsp[0].nodePointer));
+    (yyval.nodePointer) = createTreeNode(IEQUAL,(yyvsp[-2].nodePointer)->type, (Value)0, NULL, (yyvsp[-2].nodePointer), NULL, (yyvsp[0].nodePointer));
   }
-#line 1770 "compiler.tab.c" /* yacc.c:1646  */
+#line 1772 "compiler.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1774 "compiler.tab.c" /* yacc.c:1646  */
+#line 1776 "compiler.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1998,8 +2000,388 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 375 "compiler.y" /* yacc.c:1906  */
+#line 377 "compiler.y" /* yacc.c:1906  */
 
+
+handleError(int code, char*message) {
+  fprintf(stderr, RED"Runtime error (%d): %s\n", code, message);
+  exit(1);
+}
+
+int evalExprInt(TreeNode* exprNode);
+int evalTermInt(TreeNode* termNode);
+int evalFactorInt(TreeNode* factorNode);
+float evalExprFloat(TreeNode* exprNode);
+float evalTermFloat(TreeNode* termNode);
+float evalFactorFloat(TreeNode* factorNode);
+int evalExpression(TreeNode* expressionNode);
+void ifFunction(TreeNode* ifNode);
+void thenFunction(TreeNode* thenNode);
+void elseFunction(TreeNode* elseNode);
+void whileFunction(TreeNode* whileNode);
+void doFunction(TreeNode* doNode);
+void printFunction(TreeNode* printNode);
+void assignFunction(TreeNode* assignNode);
+void beginFunction(TreeNode* beginNode);
+void execTree(TreeNode* root);
+int readInteger() {
+  int i;
+  printf("Enter an integer number value: ");
+  int read = scanf(" %d", &i);
+
+  if(!read) handleError(DATA_TYPE_MISMATCH_ERROR, DATA_TYPE_MISMATCH_ERROR_MESSAGE);
+
+  return i;
+}
+
+float readReal() {
+  float f;
+  printf("Enter a real number value: ");
+  int read = scanf(" %f", &f);
+
+  if(!read) handleError(DATA_TYPE_MISMATCH_ERROR, DATA_TYPE_MISMATCH_ERROR_MESSAGE);
+
+  return f;
+}
+
+void readFunction(TreeNode*readNode) {
+  switch(readNode->left->symbolTableNode->type) {
+    case integer:
+      modifySymbol(readNode->left->symbolTableNode->identifier, (Value)readInteger());
+      break;
+    case real:
+      modifySymbol(readNode->left->symbolTableNode->identifier, (Value)readReal());
+      break;
+  }
+}
+
+void printFunction(TreeNode*printNode) {
+  switch(printNode->left->type){
+    case integer: {
+      int exprRes = evalExprInt(printNode->left);
+      printf("%d", exprRes);
+      break;
+    }
+    case real: {
+      float exprRes = evalExprFloat(printNode->left);
+      printf("%f", exprRes);
+      break;
+    }
+    default:
+      #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong print function");
+      exit(1);
+      #endif
+      break;
+  }
+}
+
+int evalFactorInt(TreeNode* factorNode){
+  switch(factorNode->instruction){
+    case IPARENTHESIS:
+      return evalExprInt(factorNode-> left);
+      break;
+    case IIDENTIFIER:
+      return factorNode->symbolTableNode->val.intV;
+      break;
+    case IINTNUM:
+      return factorNode->val.intV;
+      break;
+    case IREALNUM:
+      #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong evalFactorInt had a real");
+      exit(1);
+      #endif
+      break;
+    default:
+      #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong evalFactorInt default");
+      exit(1);
+      #endif
+      break;
+  }
+}
+
+int evalTermInt(TreeNode* termNode){
+  switch(termNode->instruction){
+    case ASTERISK: {
+      int leftTerm = evalTermInt(termNode->left);
+      int rightFactor = evalFactorInt(termNode->right);
+      return leftTerm * rightFactor;
+      break;
+    }
+    case SLASH: {
+      int leftTerm = evalTermInt(termNode->left);
+      int rightFactor = evalFactorInt(termNode->right);
+      return leftTerm / rightFactor;
+      break;
+    }
+    default:
+      return evalFactorInt(termNode);
+      break;
+  }
+}
+
+int evalExprInt(TreeNode* exprNode){
+  switch(exprNode->instruction){
+    case IPLUS:{
+      int leftExpr = evalExprInt(exprNode->left);
+      int rightTerm = evalTermInt(exprNode->right);
+      return leftExpr + rightTerm;
+      break;
+    }
+    case IMINUS:{
+      int leftExpr = evalExprInt(exprNode->left);
+      int rightTerm = evalTermInt(exprNode->right);
+      return leftExpr - rightTerm;
+      break;
+    }
+    default:
+      return evalTermInt(exprNode);
+      break;
+  }
+}
+
+float evalFactorFloat(TreeNode* factorNode){
+  switch(factorNode->instruction){
+    case IPARENTHESIS:
+      return evalExprFloat(factorNode-> left);
+      break;
+    case IIDENTIFIER:
+      return factorNode->symbolTableNode->val.realV;
+      break;
+    case IINTNUM:
+    #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong evalFactorInt had a real");
+      exit(1);
+      #endif
+      break;
+    case IREALNUM:
+      return factorNode->val.realV;
+      break;
+    default:
+      #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong evalFactorInt default");
+      exit(1);
+      #endif
+      break;
+  }
+}
+
+float evalTermFloat(TreeNode* termNode){
+  switch(termNode->instruction){
+    case ASTERISK:{
+      float leftTerm = evalTermFloat(termNode->left);
+      float rightFactor = evalFactorFloat(termNode->right);
+      return leftTerm * rightFactor;
+      break;
+    }
+    case SLASH:{
+      float leftTerm = evalTermFloat(termNode->left);
+      float rightFactor = evalFactorFloat(termNode->right);
+      return leftTerm / rightFactor;
+      break;
+    }
+    default:
+      return evalFactorFloat(termNode);
+      break;
+  }
+}
+
+float evalExprFloat(TreeNode* exprNode){
+  switch(exprNode->instruction){
+    case IPLUS:{
+      float leftExpr = evalExprFloat(exprNode->left);
+      float rightTerm = evalTermFloat(exprNode->right);
+      return leftExpr + rightTerm;
+      break; 
+    }
+    case IMINUS:{
+      float leftExpr = evalExprFloat(exprNode->left);
+      float rightTerm = evalTermFloat(exprNode->right);
+      return leftExpr - rightTerm;
+      break;
+    }
+    default:
+      return evalTermFloat(exprNode);
+      break;
+  }
+}
+
+int evalExpression(TreeNode* expressionNode){
+  if(expressionNode->type = integer){
+    int leftExpr = evalExprInt(expressionNode->left);
+    int rightExpr = evalExprInt(expressionNode->right);
+    switch(expressionNode->instruction){
+      case ISMALLER:
+        if(leftExpr < rightExpr)
+          return 1;
+        else
+          return 0;
+        break;
+      case IEQUAL:
+        if(leftExpr == rightExpr)
+          return 1;
+        else
+          return 0;
+        break;
+      case IBIGGER:
+        if(leftExpr > rightExpr)
+          return 1;
+        else
+          return 0;
+        break;
+      default:
+        #ifdef _PRINT_STACK_TRACE
+        printf("Something went wrong eval expression");
+        exit(1);
+        #endif
+        break;
+    }
+  }
+  else{
+    float leftExpr = evalExprFloat(expressionNode->left);
+    float rightExpr = evalExprFloat(expressionNode->right);
+    switch(expressionNode->instruction){
+      case ISMALLER:
+        if(leftExpr < rightExpr)
+          return 1;
+        else
+          return 0;
+        break;
+      case IEQUAL:
+        if(leftExpr == rightExpr)
+          return 1;
+        else
+          return 0;
+        break;
+      case IBIGGER:
+        if(leftExpr > rightExpr)
+          return 1;
+        else
+          return 0;
+        break;
+      default:
+        #ifdef _PRINT_STACK_TRACE
+        printf("Something went wrong eval expression");
+        exit(1);
+        #endif
+        break;
+    }
+  }
+}
+
+void ifFunction(TreeNode* ifNode){
+  int exrpessionRes = evalExpression(ifNode->left);
+  if(exrpessionRes){
+    execTree(ifNode->center);
+  }    
+  else{
+    execTree(ifNode->right);
+  }
+}
+
+void thenFunction(TreeNode* thenNode){
+  execTree(thenNode->left);
+}
+
+void elseFunction(TreeNode* elseNode){
+  if(elseNode != NULL){
+    execTree(elseNode->left);
+  }
+}
+
+void whileFunction(TreeNode* whileNode){
+  int exrpessionRes = evalExpression(whileNode->left);
+  if(exrpessionRes){
+    whileNode->right->right = whileNode;
+    execTree(whileNode->right);
+  }
+}
+
+void doFunction(TreeNode* doNode){
+  //Do stmt
+  execTree(doNode->left);
+  //Check while again
+  execTree(doNode->right);
+}
+
+void beginFunction(TreeNode* beginNode){
+  execTree(beginNode->left);
+}
+
+void assignFunction(TreeNode* assignNode){
+  switch(assignNode->right->type){
+    case integer:{
+      int exprRes = evalExprInt(assignNode->right);
+      modifySymbol(assignNode->left->symbolTableNode->identifier, (Value)exprRes);
+      break;
+    }
+    case real:{
+      float exprRes = evalExprFloat(assignNode->right);
+      modifySymbol(assignNode->left->symbolTableNode->identifier, (Value)exprRes);
+      break;
+    }
+    default:
+      #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong assign function");
+      exit(1);
+      #endif
+      break;
+  }
+}
+
+void execTree(TreeNode*root) {
+  if(root == NULL) return;
+
+  switch(root->instruction) {
+    case ISEMICOLON:
+      execTree(root->left);
+      execTree(root->right);
+      break;
+
+    case IBEGIN:
+      beginFunction(root);
+      break;
+
+    //Angel
+    case IIF:
+      ifFunction(root);
+      break;
+
+    //Angel
+    case ITHEN:
+      thenFunction(root);
+      break;
+
+    //Angel
+    case IELSE:
+      elseFunction(root);
+      break;
+
+    //Angel
+    case IWHILE:
+      whileFunction(root);
+      break;
+
+    //Angel
+    case IDO:
+      doFunction(root);
+      break;
+
+    case IREAD:
+      readFunction(root);
+      break;
+
+    case IPRINT:
+      printFunction(root);
+      break;
+
+    case IASSIGNMENT:
+      assignFunction(root);
+      break;
+  }
+}
 
 int yyerror(char const * s) {
   lines++;
@@ -2033,6 +2415,9 @@ int main(int argc, char **argv) {
 
     printf("\nSystax Tree ------------------------\n");
     postOrder(root);
+
+    printf("Execution output:\n");
+    execTree(root);
 
     return 0;
 }

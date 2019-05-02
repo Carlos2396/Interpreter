@@ -415,26 +415,33 @@ void execTree(TreeNode*root) {
   if(node == NULL) return;
 
   switch(root->instruction) {
-    case IPROGRAM:
-        break;
+    case ISEMICOLON:
+      execTree(root->left);
+      execTree(root->right);
+      break;
 
     case IBEGIN:
-        break;
+      break;
 
+    //Angel
     case IIF:
-        break;
+      break;
 
+    //Angel
     case ITHEN:
-        break;
+      break;
 
+    //Angel
     case IELSE:
-        break;
+      break;
 
+    //Angel
     case IWHILE:
-        break;
+      break;
 
+    //Angel
     case IDO:
-        break;
+      break;
 
     case IREAD:
       readFunction(root);
@@ -444,18 +451,7 @@ void execTree(TreeNode*root) {
 
     case IASSIGNMENT:
       break;
-
-    default:
-      break;
   }
-
-  if() {
-
-  }
-
-  execTree(root->left);
-  execTree(root->center);
-  execTree(root->right);
 }
 
 handleError(int code, char*message) {

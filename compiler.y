@@ -148,7 +148,7 @@ stmt:
     #endif
 
     TreeNode*thenNode = createTreeNode(ITHEN, null, (Value)0, NULL, $4, NULL, NULL);
-    TreeNode*elseNode = createTreeNode(ITHEN, null, (Value)0, NULL, $6, NULL, NULL); 
+    TreeNode*elseNode = createTreeNode(IELSE, null, (Value)0, NULL, $6, NULL, NULL); 
     $$ = createTreeNode(IIF, null, (Value)0, NULL, $2, thenNode, elseNode);
   } |
   WHILE expression DO stmt {
@@ -344,7 +344,7 @@ expression:
       return 1;
     }
 
-    $$ = createTreeNode(ISMALLER, null, (Value)0, NULL, $1, NULL, $3);
+    $$ = createTreeNode(ISMALLER, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   expr BIGGER expr {
     #ifdef _PRINT_STACK_TRACE
@@ -357,7 +357,7 @@ expression:
       return 1;
     }
 
-    $$ = createTreeNode(IBIGGER, null, (Value)0, NULL, $1, NULL, $3);
+    $$ = createTreeNode(IBIGGER, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   expr EQUAL expr{
     #ifdef _PRINT_STACK_TRACE
@@ -370,11 +370,27 @@ expression:
       return 1;
     }
 
-    $$ = createTreeNode(IEQUAL, null, (Value)0, NULL, $1, NULL, $3);
+    $$ = createTreeNode(IEQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
   }
 ;
 
 %%
+
+int evalExprInt(TreeNode* exprNode);
+int evalTermInt(TreeNode* termNode);
+int evalFactorInt(TreeNode* factorNode);
+float evalExprFloat(TreeNode* exprNode);
+float evalTermFloat(TreeNode* termNode);
+float evalFactorFloat(TreeNode* factorNode);
+int evalExpression(TreeNode* expressionNode);
+void ifFunction(TreeNode* ifNode);
+void thenFunction(TreeNode* thenNode);
+void elseFunction(TreeNode* elseNode);
+void whileFunction(TreeNode* whileNode);
+void doFunction(TreeNode* doNode);
+void printFunction(TreeNode* printNode);
+void assignFunction(TreeNode* assignNode);
+void beginFunction(TreeNode* beginNode);
 
 int readInteger() {
   int i;
@@ -408,7 +424,241 @@ void readFunction(TreeNode*readNode) {
 }
 
 void printFunction(TreeNode*printNode) {
+  switch(printNode->expr->type){
+    case integer:
+      int exprRes = evalExprInt(printNode->left);
+      printf("%d", exprRes);
+      break;
+    case real:
+      float exprRes = evalExprFloat(printNode->left);
+      printf("%f", exprRes);
+      break;
+    default;
+      #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong print function");
+      exit(1);
+      #endif
+      break
+  }
+}
 
+int evalFactorInt(TreeNode* factorNode){
+  switch(factorNode->instruction){
+    case IPARENTHESIS:
+      return evalExprInt(factorNode-> left);
+      break;
+    case IIDENTIFIER:
+      return factorNode->symbolTableNode->val.intV;
+      break;
+    case IINTNUM:
+      return factorNode->val.intV;
+      break;
+    case IREALNUM:
+      #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong evalFactorInt had a real");
+      exit(1);
+      #endif
+      break;
+    default:
+      #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong evalFactorInt default");
+      exit(1);
+      #endif
+      break;
+  }
+}
+
+int evalTermInt(TreeNode* termNode){
+  switch(termNode->instruction){
+    case ASTERISK:
+      int leftTerm = evalTermInt(termNode->left);
+      int rightFactor = evalFactorInt(termNode->right);
+      return leftTerm * rightFactor;
+      break;
+    case SLASH:
+      int leftTerm = evalTermInt(termNode->left);
+      int rightFactor = evalFactorInt(termNode->right);
+      return leftTerm / rightFactor;
+      break;
+    default:
+      return evalFactorInt(termNode);
+      break;
+  }
+}
+
+int evalExprInt(TreeNode* exprNode){
+  switch(exprNode->instruction){
+    case IPLUS:
+      int leftExpr = evalExprInt(exprNode->left);
+      int rightTerm = evalTermInt(exprNode->right);
+      return leftExpr + rightTerm;
+      break;
+    case IMINUS:
+      int leftExpr = evalExprInt(exprNode->left);
+      int rightTerm = evalTermInt(exprNode->right);
+      return leftExpr - rightTerm;
+      break;
+    default:
+      return evalTermInt(exprNode);
+      break;
+  }
+}
+
+float evalFactorFloat(TreeNode* factorNode){
+  switch(factorNode->instruction){
+    case IPARENTHESIS:
+      return evalExprFloat(factorNode-> left);
+      break;
+    case IIDENTIFIER:
+      return factorNode->symbolTableNode->val.realV;
+      break;
+    case IINTNUM:
+    #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong evalFactorInt had a real");
+      exit(1);
+      #endif
+      break;
+    case IREALNUM:
+      return factorNode->val.realV;
+      break;
+    default:
+      #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong evalFactorInt default");
+      exit(1);
+      #endif
+      break;
+  }
+}
+
+float evalTermFloat(TreeNode* termNode){
+  switch(termNode->instruction){
+    case ASTERISK:
+      float leftTerm = evalTermFloat(termNode->left);
+      float rightFactor = evalFactorFloat(termNode->right);
+      return leftTerm * rightFactor;
+      break;
+    case SLASH:
+      float leftTerm = evalTermFloat(termNode->left);
+      float rightFactor = evalFactorFloat(termNode->right);
+      return leftTerm / rightFactor;
+      break;
+    default:
+      return evalFactorFloat(termNode);
+      break;
+  }
+}
+
+float evalExprFloat(TreeNode* exprNode){
+  switch(exprNode->instruction){
+    case IPLUS:
+      float leftExpr = evalExprFloat(exprNode->left);
+      float rightTerm = evalTermFloat(exprNode->right);
+      return leftExpr + rightTerm;
+      break;
+    case IMINUS:
+      float leftExpr = evalExprFloat(exprNode->left);
+      float rightTerm = evalTermFloat(exprNode->right);
+      return leftExpr - rightTerm;
+      break;
+    default:
+      return evalTermFloat(exprNode);
+      break;
+  }
+}
+
+int evalExpression(TreeNode* expressionNode){
+  if(expressionNode->type = integer){
+    int leftExpr = evalExprInt(expressionNode->left);
+    int rightExpr = evalExprInt(expressionNode->right);
+  }
+  else{
+    float leftExpr = evalExprFloat(expressionNode->left);
+    float rightExpr = evalExprFloat(expressionNode->right);
+  }
+  switch(expressionNode->instruction){
+    case ISMALLER:
+      if(leftExpr < rightExpr)
+        return 1;
+      else
+        return 0;
+      break;
+    case IEQUAL:
+      if(leftExpr == rightExpr)
+        return 1;
+      else
+        return 0;
+      break;
+    case IBIGGER:
+      if(leftExpr > rightExpr)
+        return 1;
+      else
+        return 0;
+      break;
+    default:
+      #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong eval expression");
+      exit(1);
+      #endif
+      break;
+  }
+}
+
+void ifFunction(TreeNode* ifNode){
+  int exrpessionRes = evalExpression(ifNode->left);
+  if(exrpessionRes){
+    execTree(ifNode->center);
+  }    
+  else{
+    execTree(ifNode->right);
+  }
+}
+
+void thenFunction(TreeNode* thenNode){
+  execTree(thenNode->left);
+}
+
+void elseFunction(TreeNode* elseNode){
+  if(elseNode != NULL){
+    execTree(elseNode->left);
+  }
+}
+
+void whileFunction(TreeNode* whileNode){
+  int exrpessionRes = evalExpression(whileNode->left);
+  if(exrpessionRes){
+    whileNode->right->right = whileNode;
+    execTree(whileNode->right);
+  }
+}
+
+void doFunction(TreeNode* doNode){
+  //Do stmt
+  execTree(doNode->left);
+  //Check while again
+  execTree(doNode->right);
+}
+
+void beginFunction(TreeNode* beginNode){
+  execTree(beginNode->left);
+}
+
+void assignFunction(TreeNode* assignNode){
+  switch(assignNode->right->type){
+    case integer:
+      int exprRes = evalExprInt(assignNode->right)
+      modifySymbol(assignNode->left->symbolTableNode->identifier, (Value)exprRes);
+      break;
+    case real:
+      float exprRes = evalExprFloat(assignNode->right)
+      modifySymbol(assignNode->left->symbolTableNode->identifier, (Value)exprRes);
+      break;
+    default:
+      #ifdef _PRINT_STACK_TRACE
+      printf("Something went wrong assign function");
+      exit(1);
+      #endif
+      break;
+  }
 }
 
 void execTree(TreeNode*root) {
@@ -421,35 +671,44 @@ void execTree(TreeNode*root) {
       break;
 
     case IBEGIN:
+      beginFunction(root);
       break;
 
     //Angel
     case IIF:
+      ifFunction(root);
       break;
 
     //Angel
     case ITHEN:
+      thenFunction(root);
       break;
 
     //Angel
     case IELSE:
+      elseFunction(root);
       break;
 
     //Angel
     case IWHILE:
+      whileFunction(root);
       break;
 
     //Angel
     case IDO:
+      doFunction(root);
       break;
 
     case IREAD:
       readFunction(root);
       break;
+
     case IPRINT:
-        break;
+      printFunction(root);
+      break;
 
     case IASSIGNMENT:
+      assignFunction(root);
       break;
   }
 }

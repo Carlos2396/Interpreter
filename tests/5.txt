@@ -1,9 +1,15 @@
 program
 programID
+let sVar: integer
 begin
+    read sVar;
+    print sVar;
+    begin
     if sVar > 5 then
         if sVar < 10 then
             sVar := sVar + 1
         else 
-            sVar := 5   
+            sVar := 5
+    end;
+    print sVar
 end

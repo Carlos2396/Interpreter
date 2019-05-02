@@ -4,5 +4,6 @@ let myVar, sVar: integer
 
 begin
     myVar := 15;
-    sVar := myVar
+    sVar := myVar;
+    print sVar
 end

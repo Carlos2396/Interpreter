@@ -1,6 +1,13 @@
 program programID
 let ptr:integer
 begin
+    read ptr;
+    begin
     while ptr > 10 do
+        begin
+        print ptr;
         ptr := ptr - 1
+        end
+    end;
+    print ptr
 end

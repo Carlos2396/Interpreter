@@ -432,17 +432,19 @@ void printFunction(TreeNode*printNode) {
   switch(printNode->left->type){
     case integer: {
       int exprRes = evalExprInt(printNode->left);
-      printf("%d", exprRes);
+      printf("%d\n", exprRes);
       break;
     }
     case real: {
+
+      //printf("lol/n");
       float exprRes = evalExprFloat(printNode->left);
-      printf("%f", exprRes);
+      printf("%f\n", exprRes);
       break;
     }
     default:
       #ifdef _PRINT_STACK_TRACE
-      printf("Something went wrong print function");
+      printf("Something went wrong print function\n");
       exit(1);
       #endif
       break;
@@ -477,13 +479,13 @@ int evalFactorInt(TreeNode* factorNode){
 
 int evalTermInt(TreeNode* termNode){
   switch(termNode->instruction){
-    case ASTERISK: {
+    case IASTERISK: {
       int leftTerm = evalTermInt(termNode->left);
       int rightFactor = evalFactorInt(termNode->right);
       return leftTerm * rightFactor;
       break;
     }
-    case SLASH: {
+    case ISLASH: {
       int leftTerm = evalTermInt(termNode->left);
       int rightFactor = evalFactorInt(termNode->right);
       return leftTerm / rightFactor;
@@ -543,13 +545,13 @@ float evalFactorFloat(TreeNode* factorNode){
 
 float evalTermFloat(TreeNode* termNode){
   switch(termNode->instruction){
-    case ASTERISK:{
+    case IASTERISK:{
       float leftTerm = evalTermFloat(termNode->left);
       float rightFactor = evalFactorFloat(termNode->right);
       return leftTerm * rightFactor;
       break;
     }
-    case SLASH:{
+    case ISLASH:{
       float leftTerm = evalTermFloat(termNode->left);
       float rightFactor = evalFactorFloat(termNode->right);
       return leftTerm / rightFactor;
@@ -582,7 +584,7 @@ float evalExprFloat(TreeNode* exprNode){
 }
 
 int evalExpression(TreeNode* expressionNode){
-  if(expressionNode->type = integer){
+  if(expressionNode->type == integer){
     int leftExpr = evalExprInt(expressionNode->left);
     int rightExpr = evalExprInt(expressionNode->right);
     switch(expressionNode->instruction){
@@ -599,8 +601,9 @@ int evalExpression(TreeNode* expressionNode){
           return 0;
         break;
       case IBIGGER:
-        if(leftExpr > rightExpr)
+        if(leftExpr > rightExpr){
           return 1;
+        }
         else
           return 0;
         break;
@@ -617,18 +620,21 @@ int evalExpression(TreeNode* expressionNode){
     float rightExpr = evalExprFloat(expressionNode->right);
     switch(expressionNode->instruction){
       case ISMALLER:
+        //printf("<\n");
         if(leftExpr < rightExpr)
           return 1;
         else
           return 0;
         break;
       case IEQUAL:
+        //printf("=\n");
         if(leftExpr == rightExpr)
           return 1;
         else
           return 0;
         break;
       case IBIGGER:
+        //printf(">\n");
         if(leftExpr > rightExpr)
           return 1;
         else
@@ -647,10 +653,14 @@ int evalExpression(TreeNode* expressionNode){
 void ifFunction(TreeNode* ifNode){
   int exrpessionRes = evalExpression(ifNode->left);
   if(exrpessionRes){
-    execTree(ifNode->center);
+    if(ifNode ->center == NULL)
+      execTree(ifNode->right);
+    else
+      execTree(ifNode->center);
   }    
   else{
-    execTree(ifNode->right);
+    if(ifNode->center != NULL)
+      execTree(ifNode->right);
   }
 }
 
@@ -705,6 +715,7 @@ void assignFunction(TreeNode* assignNode){
 }
 
 void execTree(TreeNode*root) {
+  //printf("Ahhhhh");
   if(root == NULL) return;
 
   switch(root->instruction) {
@@ -784,10 +795,10 @@ int main(int argc, char **argv) {
       printf(GREEN"Accepted.\n");
     }
 
-    printSymbolTable();
+    //printSymbolTable();
 
     printf("\nSystax Tree ------------------------\n");
-    postOrder(root);
+    //postOrder(root);
 
     printf("Execution output:\n");
     execTree(root);

@@ -8,7 +8,6 @@ let a, aVar: real
 begin
     read sVar;
     read dob;
-    sVar := 2 + 2;
     begin
         while ptr > 10 do 
             ptr := ptr - 1;

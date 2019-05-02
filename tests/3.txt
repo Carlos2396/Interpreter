@@ -1,11 +1,24 @@
 program programID
 
-let myVar, sVar, resVar, multVar, divVar:real
-
+let myVar, sVar, resVar, multVar, divVar:real;
+let x, y, z, a: integer
 begin
-    myVar := 15;
+    myVar := 15.0;
     sVar := myVar;
-    resVar := 15 - 2;
-    multVar := 15 * 2;
-    divVar := sVar /myVar
+    resVar := 15.0 - 20.0;
+    multVar := 15.0 * 2.0;
+    divVar := sVar /myVar;
+    print myVar;
+    print sVar;
+    print resVar;
+    print multVar;
+    print divVar;
+    x := 5 + 5;
+    y := 5 - 6;
+    z := 5 * 6;
+    a := 10 / 5;
+    print x;
+    print y;
+    print z;
+    print a
 end

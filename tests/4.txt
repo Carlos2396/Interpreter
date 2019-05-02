@@ -1,6 +1,9 @@
 program programID
 let myVar:real;
-let sVar, tVar: integer
+let sVar, tVar: real
 begin
-    myVar := ((1/4)+(2*(sVar-tVar)))
+    sVar := 2.0;
+    tVar := 1.0;
+    myVar := ((1.0/4.0)+(2.0*(sVar-tVar)));
+    print myVar
 end

@@ -17,6 +17,23 @@
 #define SIZE    32507
 
 /**
+ *  Errors 
+*/
+#define IDENTIFIER_NOT_FOUND_ERROR          100
+#define UNEXPECTED_INT_VALUE_ERROR          101
+#define UNEXPECTED_REAL_vALUE_ERROR         102
+#define DATA_TYPE_MISMATCH_ERROR            103
+#define MISSING_IDENTIFIER_ERROR            104
+#define MISSING_SYMBOL_TABLE_NODE_ERROR     105
+
+#define IDENTIFIER_NOT_FOUND_ERROR_MESSAGE          "The identifier does has not been declared."
+#define UNEXPECTED_INT_VALUE_ERROR_MESSAGE          "Unexpected integer value."
+#define UNEXPECTED_REAL_VALUE_ERROR_MESSAGE         "Unexpected real value."
+#define DATA_TYPE_MISMATCH_ERROR_MESSAGE            "Data type mismatch."
+#define MISSING_IDENTIFIER_ERROR_MESSAGE            "Missing identifier."
+#define MISSING_SYMBOL_TABLE_NODE_ERROR_MESSAGE     "Missing symbol."
+
+/**
  * Unions and Enums definitions
 */
 

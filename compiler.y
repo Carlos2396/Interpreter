@@ -123,7 +123,8 @@ stmt:
     #endif
 
     SymbolNode*symbol = findSymbol($1);
-    if(findSymbol($1) == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; } 
+    if(findSymbol($1) == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; }
+
     TreeNode*idNode = createTreeNode(IIDENTIFIER, null, (Value)0, symbol, NULL, NULL, NULL);
     $$ = createTreeNode(IASSIGNMENT, null, (Value)0, NULL, idNode, NULL, $3); 
   } |
@@ -159,7 +160,8 @@ stmt:
 
     SymbolNode*symbol = findSymbol($2);
     if(symbol == NULL) { sprintf(error, "Symbol %s not found", $2); yyerror(error); return 1; }
-    TreeNode*idNode = createTreeNode(IIDENTIFIER, null, (Value)0, symbol, NULL, NULL, NULL);
+    
+    TreeNode*idNode = createTreeNode(IIDENTIFIER, symbol->type, (Value)0, symbol, NULL, NULL, NULL);
     $$ = createTreeNode(IREAD, null, (Value)0, NULL, idNode, NULL, NULL);
   } |
   PRINT expr {
@@ -326,6 +328,93 @@ expression:
 
 %%
 
+int readInteger() {
+  int i;
+  printf("Enter an integer number value: ");
+  int read = scanf(" %d", &i);
+
+  if(!read) handleError(DATA_TYPE_MISMATCH_ERROR, DATA_TYPE_MISMATCH_ERROR_MESSAGE);
+
+  return i;
+}
+
+float readReal() {
+  float f;
+  printf("Enter a real number value: ");
+  int read = scanf(" %f", &f);
+
+  if(!read) handleError(DATA_TYPE_MISMATCH_ERROR, DATA_TYPE_MISMATCH_ERROR_MESSAGE);
+
+  return f;
+}
+
+void readFunction(TreeNode*readNode) {
+  switch(symbol->type) {
+    case integer:
+      modifySymbol(symbol->identifier, readInteger());
+      break;
+    case real:
+      modifySymbol(symbol->identifier, readReal());
+      break;
+  }
+}
+
+void printFunction(TreeNode*printNode) {
+
+}
+
+void execTree(TreeNode*root) {
+  if(node == NULL) return;
+
+  switch(root->instruction) {
+    case IPROGRAM:
+        break;
+
+    case IBEGIN:
+        break;
+
+    case IIF:
+        break;
+
+    case ITHEN:
+        break;
+
+    case IELSE:
+        break;
+
+    case IWHILE:
+        break;
+
+    case IDO:
+        break;
+
+    case IREAD:
+      readFunction(root);
+      break;
+    case IPRINT:
+        break;
+
+    case IASSIGNMENT:
+      break;
+
+    default:
+      break;
+  }
+
+  if() {
+
+  }
+
+  execTree(root->left);
+  execTree(root->center);
+  execTree(root->right);
+}
+
+handleError(int code, char*message) {
+  fprintf(stderr, RED"Runtime error (%d): %s\n", code, message);
+  exit(1);
+}
+
 int yyerror(char const * s) {
   lines++;
   fprintf(stderr, RED"%s in line %d\n", s, lines);
@@ -358,6 +447,9 @@ int main(int argc, char **argv) {
 
     printf("\nSystax Tree ------------------------\n");
     postOrder(root);
+
+    printf("Execution output:\n");
+    execTree(root);
 
     return 0;
 }

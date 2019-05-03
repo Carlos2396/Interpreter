@@ -376,7 +376,7 @@ expression:
 
 %%
 
-handleError(int code, char*message) {
+void handleError(int code, char*message) {
   fprintf(stderr, RED"Runtime error (%d): %s\n", code, message);
   exit(1);
 }
@@ -397,6 +397,7 @@ void printFunction(TreeNode* printNode);
 void assignFunction(TreeNode* assignNode);
 void beginFunction(TreeNode* beginNode);
 void execTree(TreeNode* root);
+
 int readInteger() {
   int i;
   printf("Enter an integer number value: ");
@@ -436,14 +437,12 @@ void printFunction(TreeNode*printNode) {
       break;
     }
     case real: {
-
-      //printf("lol/n");
       float exprRes = evalExprFloat(printNode->left);
       printf("%f\n", exprRes);
       break;
     }
     default:
-      #ifdef _PRINT_STACK_TRACE
+      #ifdef _PRINT_EXECUTION_TRACE
       printf("Something went wrong print function\n");
       exit(1);
       #endif
@@ -463,13 +462,13 @@ int evalFactorInt(TreeNode* factorNode){
       return factorNode->val.intV;
       break;
     case IREALNUM:
-      #ifdef _PRINT_STACK_TRACE
-      printf("Something went wrong evalFactorInt had a real");
-      exit(1);
+      #ifdef _PRINT_EXECUTION_TRACE
+        printf("Something went wrong evalFactorInt had a real");
+        exit(1);
       #endif
       break;
     default:
-      #ifdef _PRINT_STACK_TRACE
+      #ifdef _PRINT_EXECUTION_TRACE
       printf("Something went wrong evalFactorInt default");
       exit(1);
       #endif
@@ -526,7 +525,7 @@ float evalFactorFloat(TreeNode* factorNode){
       return factorNode->symbolTableNode->val.realV;
       break;
     case IINTNUM:
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_EXECUTION_TRACE
       printf("Something went wrong evalFactorInt had a real");
       exit(1);
       #endif
@@ -535,7 +534,7 @@ float evalFactorFloat(TreeNode* factorNode){
       return factorNode->val.realV;
       break;
     default:
-      #ifdef _PRINT_STACK_TRACE
+      #ifdef _PRINT_EXECUTION_TRACE
       printf("Something went wrong evalFactorInt default");
       exit(1);
       #endif
@@ -589,26 +588,16 @@ int evalExpression(TreeNode* expressionNode){
     int rightExpr = evalExprInt(expressionNode->right);
     switch(expressionNode->instruction){
       case ISMALLER:
-        if(leftExpr < rightExpr)
-          return 1;
-        else
-          return 0;
+        return leftExpr < rightExpr? 1: 0;
         break;
       case IEQUAL:
-        if(leftExpr == rightExpr)
-          return 1;
-        else
-          return 0;
+        return leftExpr == rightExpr? 1: 0;
         break;
       case IBIGGER:
-        if(leftExpr > rightExpr){
-          return 1;
-        }
-        else
-          return 0;
+        return leftExpr > rightExpr? 1: 0;
         break;
       default:
-        #ifdef _PRINT_STACK_TRACE
+        #ifdef _PRINT_EXECUTION_TRACE
         printf("Something went wrong eval expression");
         exit(1);
         #endif
@@ -620,28 +609,25 @@ int evalExpression(TreeNode* expressionNode){
     float rightExpr = evalExprFloat(expressionNode->right);
     switch(expressionNode->instruction){
       case ISMALLER:
-        //printf("<\n");
         if(leftExpr < rightExpr)
           return 1;
         else
           return 0;
         break;
       case IEQUAL:
-        //printf("=\n");
         if(leftExpr == rightExpr)
           return 1;
         else
           return 0;
         break;
       case IBIGGER:
-        //printf(">\n");
         if(leftExpr > rightExpr)
           return 1;
         else
           return 0;
         break;
       default:
-        #ifdef _PRINT_STACK_TRACE
+        #ifdef _PRINT_EXECUTION_TRACE
         printf("Something went wrong eval expression");
         exit(1);
         #endif
@@ -706,7 +692,7 @@ void assignFunction(TreeNode* assignNode){
       break;
     }
     default:
-      #ifdef _PRINT_STACK_TRACE
+      #ifdef _PRINT_EXECUTION_TRACE
       printf("Something went wrong assign function");
       exit(1);
       #endif
@@ -715,7 +701,6 @@ void assignFunction(TreeNode* assignNode){
 }
 
 void execTree(TreeNode*root) {
-  //printf("Ahhhhh");
   if(root == NULL) return;
 
   switch(root->instruction) {
@@ -728,27 +713,22 @@ void execTree(TreeNode*root) {
       beginFunction(root);
       break;
 
-    //Angel
     case IIF:
       ifFunction(root);
       break;
 
-    //Angel
     case ITHEN:
       thenFunction(root);
       break;
 
-    //Angel
     case IELSE:
       elseFunction(root);
       break;
 
-    //Angel
     case IWHILE:
       whileFunction(root);
       break;
 
-    //Angel
     case IDO:
       doFunction(root);
       break;
@@ -792,16 +772,11 @@ int main(int argc, char **argv) {
     int res = yyparse();
   
     if(!res) {
-      printf(GREEN"Accepted.\n");
+      printf(GREEN"Accepted.\n\n");
+
+      printf(RESET"Execution output:\n");
+      execTree(root);
     }
-
-    //printSymbolTable();
-
-    printf("\nSystax Tree ------------------------\n");
-    //postOrder(root);
-
-    printf("Execution output:\n");
-    execTree(root);
 
     return 0;
 }

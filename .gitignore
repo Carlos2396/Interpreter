@@ -1,2 +1,5 @@
 *.out
 .vscode/
+compiler.tab.c
+compiler.tab.h
+lexx.yy.c

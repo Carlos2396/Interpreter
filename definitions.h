@@ -88,4 +88,9 @@ typedef struct FunctionSymbolNode {
     struct FunctionSymbolNode*next;
 } FunctionSymbolNode;
 
+typedef struct HashTable {
+    SymbolNode** table;
+    LLNode* remaining;
+} HashTable;
+
 #endif

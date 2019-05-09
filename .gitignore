@@ -2,4 +2,8 @@
 .vscode/
 compiler.tab.c
 compiler.tab.h
+<<<<<<< HEAD
+lex.yy.c
+=======
 lexx.yy.c
+>>>>>>> 5e840da3ab16106b03110ab9ba8dbdd48c17d3fc

@@ -72,4 +72,10 @@ typedef struct TreeNode {
     struct TreeNode* right;
 } TreeNode;
 
+
+typedef struct HashTable {
+    SymbolNode** table;
+    LLNode* remaining;
+} HashTable;
+
 #endif

@@ -117,27 +117,65 @@ type:
 ;
 
 opt_fun_decls:
-  fun_decls | 
+  fun_decls {
+    #ifdef _PRINT_STACK_TRACE
+    printf("opt_decls -> fun_decls : %d\n", ++counter);
+    #endif
+  } | {
+    #ifdef _PRINT_STACK_TRACE
+    printf("opt_decls -> nothing : %d\n", ++counter);
+    #endif
+  }
 ;
 
 fun_delcs:
-  fun_decl COMMA fun_decls | fun_decl
+  fun_decl COMMA fun_decls {
+    #ifdef _PRINT_STACK_TRACE
+    printf("fun_decls -> fun_decl , fun_decls : %d\n", ++counter);
+    #endif
+  } | 
+  fun_decl {
+    #ifdef _PRINT_STACK_TRACE
+    printf("fun_decls -> fun_decl : %d\n", ++counter);
+    #endif
+  }
 ;
 
 fun_decl:
-  FUN IDENTIFIER PARENTHESIS opt_params CPARENTHESIS COLON type opt_decls BEGIN opt_stmts END
+  FUN IDENTIFIER PARENTHESIS opt_params CPARENTHESIS COLON type opt_decls BEGIN opt_stmts END {
+    #ifdef _PRINT_STACK_TRACE
+    printf("fun_decl -> fun id (opt_params) : type opt_decls begin opt_stmts end\n", ++counter);
+    #endif
+  }
 ;
 
 opt_params:
-  param_lst | 
+  param_lst {
+    #ifdef _PRINT_STACK_TRACE
+    printf("param_lst -> param_lst\n", ++counter);
+    #endif
+  } | 
 ;
 
 param_lst: 
-  param COMMA param_lst | param
+  param COMMA param_lst {
+    #ifdef _PRINT_STACK_TRACE
+    printf("param_lst -> param , param_lst\n", ++counter);
+    #endif
+  } | 
+  param {
+    #ifdef _PRINT_STACK_TRACE
+    printf("param_lst -> param\n", ++counter);
+    #endif
+  }
 ;
 
 param: 
-  IDENTIFIER COLON type
+  IDENTIFIER COLON type {
+    #ifdef _PRINT_STACK_TRACE
+    printf("param -> deintifier: type\n", ++counter);
+    #endif
+  }
 ;
 
 stmt: 
@@ -146,16 +184,16 @@ stmt:
     printf("stmt -> Assignment: %d\n", ++counter);
     #endif
 
-
     SymbolNode*symbol = findSymbol($1);
-    if(findSymbol($1) == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; } 
+    if(symbol == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; } 
+    
     if(symbol->type != $3->type) {
       sprintf(error, "Type mismatch, type %d is not type %d", symbol->type, $3->type); 
       yyerror(error); 
       return 1;
     }
     
-    TreeNode*idNode = createTreeNode(IIDENTIFIER, null, (Value)0, symbol, NULL, NULL, NULL);
+    TreeNode*idNode = createTreeNode(IIDENTIFIER, null, (Value)0, symbol->identifier, NULL, NULL, NULL);
     $$ = createTreeNode(IASSIGNMENT, null, (Value)0, NULL, idNode, NULL, $3); 
   } |
   IF expression THEN stmt {
@@ -191,7 +229,7 @@ stmt:
     SymbolNode*symbol = findSymbol($2);
     if(symbol == NULL) { sprintf(error, "Symbol %s not found", $2); yyerror(error); return 1; }
     
-    TreeNode*idNode = createTreeNode(IIDENTIFIER, symbol->type, (Value)0, symbol, NULL, NULL, NULL);
+    TreeNode*idNode = createTreeNode(IIDENTIFIER, symbol->type, (Value)0, symbol->identifier, NULL, NULL, NULL);
     $$ = createTreeNode(IREAD, null, (Value)0, NULL, idNode, NULL, NULL);
   } |
   PRINT expr {
@@ -338,7 +376,7 @@ factor:
         return 1; 
     }
     Type symType = symbol-> type;
-    $$ =  createTreeNode(IIDENTIFIER, symType, (Value)0, symbol, NULL, NULL, NULL);
+    $$ =  createTreeNode(IIDENTIFIER, symType, (Value)0, symbol->identifier, NULL, NULL, NULL);
   } |
   INTV {
     #ifdef _PRINT_STACK_TRACE

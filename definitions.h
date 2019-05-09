@@ -66,7 +66,7 @@ typedef struct TreeNode {
     Instruction instruction;
     Type type;
     Value val;  
-    SymbolNode* symbolTableNode;
+    char*identifier;
     struct TreeNode* left;
     struct TreeNode* center;
     struct TreeNode* right;

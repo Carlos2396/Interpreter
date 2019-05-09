@@ -57,9 +57,9 @@ typedef struct SymbolNode {
     struct SymbolNode*next;
 } SymbolNode;
 
-typedef struct listNode {
+typedef struct LLNode {
     char*identifier;
-    struct listNode*next;
+    struct LLNode*next;
 } LLNode;
 
 typedef struct TreeNode {
@@ -71,5 +71,21 @@ typedef struct TreeNode {
     struct TreeNode* center;
     struct TreeNode* right;
 } TreeNode;
+
+typedef struct ParamNode {
+    char*identifier;
+    Type type;
+    struct ParamNode*next;
+} ParamNode;
+
+typedef struct FunctionSymbolNode {
+    int paramsCount;
+    char*identifier;
+    Type type;
+    TreeNode*syntaxTree;
+    SymbolNode**symbolTable;
+    ParamNode*paramsList;
+    struct FunctionSymbolNode*next;
+} FunctionSymbolNode;
 
 #endif

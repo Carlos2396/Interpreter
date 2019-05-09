@@ -7,12 +7,12 @@
 /*
  * Methods
 */
-TreeNode*createTreeNode(Instruction ins, Type t, Value v, SymbolNode* tblNode, TreeNode* l, TreeNode* c, TreeNode* r) {
+TreeNode*createTreeNode(Instruction ins, Type t, Value v, char*identifier, TreeNode* l, TreeNode* c, TreeNode* r) {
     TreeNode* newN = (TreeNode*)malloc(sizeof(TreeNode));
     newN->instruction = ins;
     newN->val = v;
     newN->type = t;
-    newN->symbolTableNode = tblNode;
+    newN->identifier = identifier;
     newN->left = l;
     newN->right = r;
     newN->center = c;
@@ -26,7 +26,7 @@ char*getInstructionText(TreeNode*tRoot) {
             text = "program";
             break;
         case IIDENTIFIER:
-            text = tRoot->symbolTableNode->identifier;
+            text = tRoot->identifier;
             break;
         case IBEGIN:
             text = "begin";

@@ -442,22 +442,22 @@ void handleError(int code, char*message) {
   exit(1);
 }
 
-int evalExprInt(TreeNode* exprNode);
-int evalTermInt(TreeNode* termNode);
-int evalFactorInt(TreeNode* factorNode);
-float evalExprFloat(TreeNode* exprNode);
-float evalTermFloat(TreeNode* termNode);
-float evalFactorFloat(TreeNode* factorNode);
-int evalExpression(TreeNode* expressionNode);
-void ifFunction(TreeNode* ifNode);
-void thenFunction(TreeNode* thenNode);
-void elseFunction(TreeNode* elseNode);
-void whileFunction(TreeNode* whileNode);
-void doFunction(TreeNode* doNode);
-void printFunction(TreeNode* printNode);
-void assignFunction(TreeNode* assignNode);
-void beginFunction(TreeNode* beginNode);
-void execTree(TreeNode* root);
+int evalExprInt(TreeNode* exprNode, HashTable* hashTable);
+int evalTermInt(TreeNode* termNode, HashTable* hashTable);
+int evalFactorInt(TreeNode* factorNode, HashTable* hashTable);
+float evalExprFloat(TreeNode* exprNode, HashTable* hashTable);
+float evalTermFloat(TreeNode* termNode, HashTable* hashTable);
+float evalFactorFloat(TreeNode* factorNode, HashTable* hashTable);
+int evalExpression(TreeNode* expressionNode, HashTable* hashTable);
+void ifFunction(TreeNode* ifNode, HashTable* hashTable);
+void thenFunction(TreeNode* thenNode, HashTable* hashTable);
+void elseFunction(TreeNode* elseNode, HashTable* hashTable);
+void whileFunction(TreeNode* whileNode, HashTable* hashTable);
+void doFunction(TreeNode* doNode, HashTable* hashTable);
+void printFunction(TreeNode* printNode, HashTable* hashTable);
+void assignFunction(TreeNode* assignNode, HashTable* hashTable);
+void beginFunction(TreeNode* beginNode, HashTable* hashTable);
+void execTree(TreeNode* root, HashTable* hashTable);
 
 int readInteger() {
   int i;
@@ -479,26 +479,32 @@ float readReal() {
   return f;
 }
 
-void readFunction(TreeNode*readNode) {
+void readFunction(TreeNode*readNode, HashTable* hashTable) {
+
+  symbolTableNode* symbol = findSymbol(readNode->left->identifier, globalTable);
+  symbolTableNode* symbol2 = hashTable == NULL? NULL : findSymbol(readNode->left->identifier, hashTable);
+  symbol = symbol2 == NULL? symbol : symbol2;
+  hashTable = hashTable == NULL? globalTable : hashTable;
+
   switch(readNode->left->symbolTableNode->type) {
     case integer:
-      modifySymbol(readNode->left->symbolTableNode->identifier, (Value)readInteger());
+      modifySymbol(symbol->identifier, (Value)readInteger(), hashTable);
       break;
     case real:
-      modifySymbol(readNode->left->symbolTableNode->identifier, (Value)readReal());
+      modifySymbol(symbol->identifier, (Value)readReal(), hashTable);
       break;
   }
 }
 
-void printFunction(TreeNode*printNode) {
+void printFunction(TreeNode*printNode, HashTable* hashTable) {
   switch(printNode->left->type){
     case integer: {
-      int exprRes = evalExprInt(printNode->left);
+      int exprRes = evalExprInt(printNode->left, HashTable* hashTable);
       printf("%d\n", exprRes);
       break;
     }
     case real: {
-      float exprRes = evalExprFloat(printNode->left);
+      float exprRes = evalExprFloat(printNode->left, HashTable* hashTable);
       printf("%f\n", exprRes);
       break;
     }
@@ -511,14 +517,18 @@ void printFunction(TreeNode*printNode) {
   }
 }
 
-int evalFactorInt(TreeNode* factorNode){
+int evalFactorInt(TreeNode* factorNode, HashTable* hashTable){
   switch(factorNode->instruction){
     case IPARENTHESIS:
-      return evalExprInt(factorNode-> left);
+      return evalExprInt(factorNode-> left, hashTable);
       break;
-    case IIDENTIFIER:
-      return factorNode->symbolTableNode->val.intV;
+    case IIDENTIFIER:{
+      symbolTableNode* symbol = findSymbol(factorNode->identifier, globalTable);
+      symbolTableNode* symbol2 = hashTable == NULL? NULL : findSymbol(factorNode->identifier, hashTable);
+      symbol = symbol2 == NULL? symbol : symbol2;
+      return symbol->val.intV;
       break;
+    }
     case IINTNUM:
       return factorNode->val.intV;
       break;
@@ -537,53 +547,56 @@ int evalFactorInt(TreeNode* factorNode){
   }
 }
 
-int evalTermInt(TreeNode* termNode){
+int evalTermInt(TreeNode* termNode, HashTable* hashTable){
   switch(termNode->instruction){
     case IASTERISK: {
-      int leftTerm = evalTermInt(termNode->left);
-      int rightFactor = evalFactorInt(termNode->right);
+      int leftTerm = evalTermInt(termNode->left, hashTable);
+      int rightFactor = evalFactorInt(termNode->right, hashTable);
       return leftTerm * rightFactor;
       break;
     }
     case ISLASH: {
-      int leftTerm = evalTermInt(termNode->left);
-      int rightFactor = evalFactorInt(termNode->right);
+      int leftTerm = evalTermInt(termNode->left, hashTable);
+      int rightFactor = evalFactorInt(termNode->right, hashTable);
       return leftTerm / rightFactor;
       break;
     }
     default:
-      return evalFactorInt(termNode);
+      return evalFactorInt(termNode, hashTable);
       break;
   }
 }
 
-int evalExprInt(TreeNode* exprNode){
+int evalExprInt(TreeNode* exprNode, HashTable* hashTable){
   switch(exprNode->instruction){
     case IPLUS:{
-      int leftExpr = evalExprInt(exprNode->left);
-      int rightTerm = evalTermInt(exprNode->right);
+      int leftExpr = evalExprInt(exprNode->left, hashTable);
+      int rightTerm = evalTermInt(exprNode->right, hashTable);
       return leftExpr + rightTerm;
       break;
     }
     case IMINUS:{
-      int leftExpr = evalExprInt(exprNode->left);
-      int rightTerm = evalTermInt(exprNode->right);
+      int leftExpr = evalExprInt(exprNode->left, hashTable);
+      int rightTerm = evalTermInt(exprNode->right, hashTable);
       return leftExpr - rightTerm;
       break;
     }
     default:
-      return evalTermInt(exprNode);
+      return evalTermInt(exprNode, hashTable);
       break;
   }
 }
 
-float evalFactorFloat(TreeNode* factorNode){
+float evalFactorFloat(TreeNode* factorNode, HashTable* hashTable){
   switch(factorNode->instruction){
     case IPARENTHESIS:
-      return evalExprFloat(factorNode-> left);
+      return evalExprFloat(factorNode-> left, hashTable);
       break;
     case IIDENTIFIER:
-      return factorNode->symbolTableNode->val.realV;
+      symbolTableNode* symbol = findSymbol(factorNode->identifier, globalTable);
+      symbolTableNode* symbol2 = hashTable == NULL? NULL : findSymbol(factorNode->identifier, hashTable);
+      symbol = symbol2 == NULL? symbol : symbol2;
+      return symbol->val.realV;
       break;
     case IINTNUM:
     #ifdef _PRINT_EXECUTION_TRACE
@@ -603,50 +616,50 @@ float evalFactorFloat(TreeNode* factorNode){
   }
 }
 
-float evalTermFloat(TreeNode* termNode){
+float evalTermFloat(TreeNode* termNode, HashTable* hashTable){
   switch(termNode->instruction){
     case IASTERISK:{
-      float leftTerm = evalTermFloat(termNode->left);
-      float rightFactor = evalFactorFloat(termNode->right);
+      float leftTerm = evalTermFloat(termNode->left, hashTable);
+      float rightFactor = evalFactorFloat(termNode->right, hashTable);
       return leftTerm * rightFactor;
       break;
     }
     case ISLASH:{
-      float leftTerm = evalTermFloat(termNode->left);
-      float rightFactor = evalFactorFloat(termNode->right);
+      float leftTerm = evalTermFloat(termNode->left, hashTable);
+      float rightFactor = evalFactorFloat(termNode->right, hashTable);
       return leftTerm / rightFactor;
       break;
     }
     default:
-      return evalFactorFloat(termNode);
+      return evalFactorFloat(termNode, hashTable);
       break;
   }
 }
 
-float evalExprFloat(TreeNode* exprNode){
+float evalExprFloat(TreeNode* exprNode, HashTable* hashTable){
   switch(exprNode->instruction){
     case IPLUS:{
-      float leftExpr = evalExprFloat(exprNode->left);
-      float rightTerm = evalTermFloat(exprNode->right);
+      float leftExpr = evalExprFloat(exprNode->left, hashTable);
+      float rightTerm = evalTermFloat(exprNode->right, hashTable);
       return leftExpr + rightTerm;
       break; 
     }
     case IMINUS:{
-      float leftExpr = evalExprFloat(exprNode->left);
-      float rightTerm = evalTermFloat(exprNode->right);
+      float leftExpr = evalExprFloat(exprNode->left, hashTable);
+      float rightTerm = evalTermFloat(exprNode->right, hashTable);
       return leftExpr - rightTerm;
       break;
     }
     default:
-      return evalTermFloat(exprNode);
+      return evalTermFloat(exprNode, hashTable);
       break;
   }
 }
 
-int evalExpression(TreeNode* expressionNode){
+int evalExpression(TreeNode* expressionNode, HashTable* hashTable){
   if(expressionNode->type == integer){
-    int leftExpr = evalExprInt(expressionNode->left);
-    int rightExpr = evalExprInt(expressionNode->right);
+    int leftExpr = evalExprInt(expressionNode->left, hashTable);
+    int rightExpr = evalExprInt(expressionNode->right, hashTable);
     switch(expressionNode->instruction){
       case ISMALLER:
         return leftExpr < rightExpr? 1: 0;
@@ -670,8 +683,8 @@ int evalExpression(TreeNode* expressionNode){
     }
   }
   else{
-    float leftExpr = evalExprFloat(expressionNode->left);
-    float rightExpr = evalExprFloat(expressionNode->right);
+    float leftExpr = evalExprFloat(expressionNode->left, hashTable);
+    float rightExpr = evalExprFloat(expressionNode->right, hashTable);
     switch(expressionNode->instruction){
       case ISMALLER:
         if(leftExpr < rightExpr)
@@ -701,59 +714,61 @@ int evalExpression(TreeNode* expressionNode){
   }
 }
 
-void ifFunction(TreeNode* ifNode){
-  int exrpessionRes = evalExpression(ifNode->left);
+void ifFunction(TreeNode* ifNode, HashTable* hashTable){
+  int exrpessionRes = evalExpression(ifNode->left, hashTable);
   if(exrpessionRes){
     if(ifNode ->center == NULL)
-      execTree(ifNode->right);
+      execTree(ifNode->right, hashTable);
     else
-      execTree(ifNode->center);
+      execTree(ifNode->center, hashTable);
   }    
   else{
     if(ifNode->center != NULL)
-      execTree(ifNode->right);
+      execTree(ifNode->right, hashTable);
   }
 }
 
-void thenFunction(TreeNode* thenNode){
-  execTree(thenNode->left);
+void thenFunction(TreeNode* thenNode, HashTable* hashTable){
+  execTree(thenNode->left, hashTable);
 }
 
-void elseFunction(TreeNode* elseNode){
+void elseFunction(TreeNode* elseNode, HashTable* hashTable){
   if(elseNode != NULL){
-    execTree(elseNode->left);
+    execTree(elseNode->left, hashTable);
   }
 }
 
-void whileFunction(TreeNode* whileNode){
-  int exrpessionRes = evalExpression(whileNode->left);
+void whileFunction(TreeNode* whileNode, HashTable* hashTable){
+  int exrpessionRes = evalExpression(whileNode->left, hashTable);
   if(exrpessionRes){
     whileNode->right->right = whileNode;
-    execTree(whileNode->right);
+    execTree(whileNode->right, hashTable);
   }
 }
 
-void doFunction(TreeNode* doNode){
+void doFunction(TreeNode* doNode, HashTable* hashTable){
   //Do stmt
-  execTree(doNode->left);
+  execTree(doNode->left, hashTable);
   //Check while again
-  execTree(doNode->right);
+  execTree(doNode->right, hashTable);
 }
 
-void beginFunction(TreeNode* beginNode){
-  execTree(beginNode->left);
+void beginFunction(TreeNode* beginNode, HashTable* hashTable){
+  execTree(beginNode->left, hashTable);
 }
 
-void assignFunction(TreeNode* assignNode){
+void assignFunction(TreeNode* assignNode, HashTable* hashTable){
   switch(assignNode->right->type){
     case integer:{
-      int exprRes = evalExprInt(assignNode->right);
-      modifySymbol(assignNode->left->symbolTableNode->identifier, (Value)exprRes);
+      int exprRes = evalExprInt(assignNode->right, hashTable);
+      hashTable = hashTable == NULL? globalTable : hashTable;
+      modifySymbol(assignNode->left->identifier, (Value)exprRes, hashTable);
       break;
     }
     case real:{
       float exprRes = evalExprFloat(assignNode->right);
-      modifySymbol(assignNode->left->symbolTableNode->identifier, (Value)exprRes);
+      hashTable = hashTable == NULL? globalTable : hashTable;
+      modifySymbol(assignNode->left->identifier, (Value)exprRes, hashTable);
       break;
     }
     default:
@@ -765,49 +780,49 @@ void assignFunction(TreeNode* assignNode){
   }
 }
 
-void execTree(TreeNode*root) {
+void execTree(TreeNode*root, HashTable* hashTable) {
   if(root == NULL) return;
 
   switch(root->instruction) {
     case ISEMICOLON:
-      execTree(root->left);
-      execTree(root->right);
+      execTree(root->left, hashTable);
+      execTree(root->right, hashTable);
       break;
 
     case IBEGIN:
-      beginFunction(root);
+      beginFunction(root, hashTable);
       break;
 
     case IIF:
-      ifFunction(root);
+      ifFunction(root, hashTable);
       break;
 
     case ITHEN:
-      thenFunction(root);
+      thenFunction(root, hashTable);
       break;
 
     case IELSE:
-      elseFunction(root);
+      elseFunction(root, hashTable);
       break;
 
     case IWHILE:
-      whileFunction(root);
+      whileFunction(root, hashTable);
       break;
 
     case IDO:
-      doFunction(root);
+      doFunction(root), hashTable;
       break;
 
     case IREAD:
-      readFunction(root);
+      readFunction(root, hashTable);
       break;
 
     case IPRINT:
-      printFunction(root);
+      printFunction(root, hashTable);
       break;
 
     case IASSIGNMENT:
-      assignFunction(root);
+      assignFunction(root, hashTable);
       break;
   }
 }
@@ -833,14 +848,14 @@ int main(int argc, char **argv) {
     }
 
     error = (char*)malloc(sizeof(char)*1000);
-    initTable();
+    globalTable = initTable();
     int res = yyparse();
   
     if(!res) {
       printf(GREEN"Accepted.\n\n");
 
       printf(RESET"Execution output:\n");
-      execTree(root);
+      execTree(root, NULL);
     }
 
     return 0;

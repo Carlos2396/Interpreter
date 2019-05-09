@@ -23,11 +23,12 @@
 %token <type> REAL
 %token <intVal> INTV
 %token <floatVal> FLOATV
-%type <nodePointer> stmt expr expression term factor stmt_lst opt_stmts
+%type <type> type
+%type <nodePointer> stmt expr expression term factor stmt_lst opt_stmts fun_decls
 %type <argNode> opt_args arg_lst
 %type <paramNode> opt_params param_lst param
 %token 
-    BEGINS END IF ELSE WHILE DO FOR FOREACH THEN PRINT READ
+    BEGINS END IF ELSE WHILE DO FOR FOREACH THEN PRINT READ FUN
     VAR LET BOOLEAN FLOAT PROCEDURE PROGRAM
     PLUS MINUS SLASH ASTERISK BIGGER BIGGEROREQUAL SMALLER SMALLEROREQUAL EQUAL ASSIGNMENT
     DOT COMMA COLON SEMICOLON PARENTHESIS CPARENTHESIS BRACKET CBRACKET
@@ -46,13 +47,13 @@
 }
 
 %%
-prog: PROGRAM IDENTIFIER opt_decls BEGINS opt_stmts END {
+prog: PROGRAM IDENTIFIER opt_decls opt_fun_decls BEGINS opt_stmts END {
   #ifdef _PRINT_STACK_TRACE
   printf("Program: %d\n", ++counter);
   #endif
 
   TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL); 
-  root = createTreeNode(IBEGIN, null, (Value)0, NULL, $5, NULL, endNode);
+  root = createTreeNode(IBEGIN, null, (Value)0, NULL, $6, NULL, endNode);
 
   YYACCEPT; 
 };
@@ -136,7 +137,7 @@ opt_fun_decls:
   }
 ;
 
-fun_delcs:
+fun_decls:
   fun_decl COMMA fun_decls {
     #ifdef _PRINT_STACK_TRACE
     printf("fun_decls -> fun_decl , fun_decls : %d\n", ++counter);
@@ -154,15 +155,16 @@ fun_delcs:
 ;
 
 fun_decl:
-  FUN IDENTIFIER PARENTHESIS opt_params CPARENTHESIS COLON type opt_decls BEGIN opt_stmts END {
+  FUN IDENTIFIER PARENTHESIS opt_params CPARENTHESIS COLON type opt_decls BEGINS opt_stmts END {
     #ifdef _PRINT_STACK_TRACE
     printf("fun_decl -> fun id (opt_params) : type opt_decls begin opt_stmts end\n", ++counter);
     #endif
 
     FunctionSymbolNode*function = findFunction($2);
-    if(function != NULL) {sprintf(error, "Function %s already declared", $1); yyerror(error); return 1; }
+    if(function != NULL) {sprintf(error, "Function %s already declared", $2); yyerror(error); return 1; }
 
-    TreeNode*syntaxTree = $9;
+    TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
+    TreeNode*syntaxTree = createTreeNode(IBEGIN, null, (Value)0, NULL, $10, NULL, endNode);
     ṔaramNode*paramList = $4;
 
     function = createFunctionNode($2, $7, currentTable, syntaxTree, paramList);
@@ -197,8 +199,8 @@ param_lst:
     printf("param_lst -> param , param_lst\n", ++counter);
     #endif
 
-    $paramNode = $1;
-    $paramNode->next = $3;
+    ParamNode*paramNode = $1;
+    paramNode->next = $3;
     $$ = paramNode;
   } | 
   param {
@@ -517,7 +519,7 @@ expression:
 
     $$ = createTreeNode(ISMALLEROREQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
   } | 
-  expr BIGGEROREQUAL {
+  expr BIGGEROREQUAL expr {
     #ifdef _PRINT_STACK_TRACE
     printf("expression -> Bigger or equal: %d\n", ++counter);
     #endif
@@ -543,7 +545,7 @@ opt_args:
 
 arg_lst:
   expr COMMA arg_lst {
-    $$ = createArgNode($1, $2);
+    $$ = createArgNode($1, $3);
   } | 
   expr {
     $$ = createArgNode($1, NULL);
@@ -572,6 +574,7 @@ void doFunction(TreeNode* doNode, HashTable* hashTable);
 void printFunction(TreeNode* printNode, HashTable* hashTable);
 void assignFunction(TreeNode* assignNode, HashTable* hashTable);
 void beginFunction(TreeNode* beginNode, HashTable* hashTable);
+void execFunctionFunction(TreeNode* functNode, HashTable* hashTable);
 void execTree(TreeNode* root, HashTable* hashTable);
 
 int readInteger() {
@@ -895,6 +898,26 @@ void assignFunction(TreeNode* assignNode, HashTable* hashTable){
   }
 }
 
+void execFunctionFunction(TreeNode* functionNode, HashTable* hashTable){
+  FuncyionSymbolNode* functionS = findFunction(functNode->identifier);
+  HashTable* newFunctTable = compySymbolTable(functionS->hashTable);
+  ArgNode* temp = functionNode->argList;
+  ParamNode* params = functionS.paramsList;
+  while(temp != null){
+    if(temp->syntaxTree->type == integer){
+      int evaluated = evalExprInt(temp->syntaxTree, hashTable);
+      modifySymbol(params->identifier, evaluated, newFunctTable);
+    }
+    else{
+      float evaluated = evalExprFloat(temp->syntaxTree, hashTable);
+      modifySymbol(params->identifier, evaluated, newFunctTable);
+    }
+    temp = temp->next;
+    params = params->next;
+  }
+  exec(functionS->syntaxTree, newFunctTable);
+}
+
 void execTree(TreeNode*root, HashTable* hashTable) {
   if(root == NULL) return;
 
@@ -938,6 +961,9 @@ void execTree(TreeNode*root, HashTable* hashTable) {
 
     case IASSIGNMENT:
       assignFunction(root, hashTable);
+      break;
+    case IFUNCTION:
+      execFunctionFunction(root, hashTable);
       break;
   }
 }

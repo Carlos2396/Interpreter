@@ -9,8 +9,7 @@
 /**
  * Symbol table vars
 */
-//SymbolNode**table;
-//LLNode*remaining;
+HashTable* globalTable;
 
 /**
  * Methods definitions 

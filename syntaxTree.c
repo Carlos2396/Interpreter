@@ -13,6 +13,7 @@ TreeNode*createTreeNode(Instruction ins, Type t, Value v, char*identifier, TreeN
     newN->val = v;
     newN->type = t;
     newN->identifier = identifier;
+    newN->argList = NULL;
     newN->left = l;
     newN->right = r;
     newN->center = c;

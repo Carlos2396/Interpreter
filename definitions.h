@@ -37,7 +37,7 @@
  * Unions and Enums definitions
 */
 
-typedef enum {IPROGRAM, IIDENTIFIER, IBEGIN, IEND, ILET, IINTEGER, IREAL, IIF, ITHEN, IELSE, IWHILE, IDO, IREAD, IPRINT, ISEMICOLON, IPLUS, IMINUS, IASTERISK, ISLASH, IPARENTHESIS, ICPARENTHESIS, IINTNUM, IREALNUM, ISMALLER, IBIGGER, IEQUAL, ISMALLEROREQUAL, IBIGGEROREQUAL, IDOT, ICOLON, IBRACKET, ICBRACKET, IASSIGNMENT} 
+typedef enum {IPROGRAM, IFUNCTION, IIDENTIFIER, IBEGIN, IEND, ILET, IINTEGER, IREAL, IIF, ITHEN, IELSE, IWHILE, IDO, IREAD, IPRINT, ISEMICOLON, IPLUS, IMINUS, IASTERISK, ISLASH, IPARENTHESIS, ICPARENTHESIS, IINTNUM, IREALNUM, ISMALLER, IBIGGER, IEQUAL, ISMALLEROREQUAL, IBIGGEROREQUAL, IDOT, ICOLON, IBRACKET, ICBRACKET, IASSIGNMENT} 
     Instruction;
 
 typedef enum {integer, real, null} Type;
@@ -67,6 +67,7 @@ typedef struct TreeNode {
     Type type;
     Value val;  
     char*identifier;
+    ArgNode*argList;
     struct TreeNode* left;
     struct TreeNode* center;
     struct TreeNode* right;
@@ -78,13 +79,17 @@ typedef struct ParamNode {
     struct ParamNode*next;
 } ParamNode;
 
+typedef struct ArgNode {
+    TreeNode*syntaxTree;
+    struct ArgNode*next;
+} ArgNode;
+
 typedef struct HashTable {
     SymbolNode** table;
     LLNode* remaining;
 } HashTable;
 
 typedef struct FunctionSymbolNode {
-    int paramsCount;
     char*identifier;
     Type type;
     TreeNode*syntaxTree;

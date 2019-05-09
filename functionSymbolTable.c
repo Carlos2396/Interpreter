@@ -19,15 +19,22 @@ int hash(char*c) {
     return sum%SIZE;
 }
 
-FunctionSymbolNode*createFunctionNode(char*id, int paramsCount, Type type, HashTable*hashTable, TreeNode*syntaxTree, ParamNode*paramsList) {
+FunctionSymbolNode*createFunctionNode(char*id, Type type, HashTable*hashTable, TreeNode*syntaxTree, ParamNode*paramsList) {
     FunctionSymbolNode*node = (FunctionSymbolNode*)malloc(sizeof(FunctionSymbolNode));
     node->identifier = strdup(id);
-    node->paramsCount = paramsCount;
     node->type = type;
     node->hashTable = hashTable;
     node->syntaxTree = syntaxTree;
     node->paramsList = paramsList;
     node->next = NULL;
+
+    return node;
+}
+
+ArgNode*createArgNode(TreeNode*syntaxTree, ArgNode*next) {
+    ArgNode*node = (ArgNode*)malloc(sizeof(ArgNode));
+    node->syntaxTree = syntaxTree;
+    node->next = next;
 
     return node;
 }
@@ -45,11 +52,11 @@ FunctionSymbolNode*findFunction(char*id) {
     return ptr;
 }
 
-ParamNode*createParamNode(char*id, Type type) {
+ParamNode*createParamNode(char*id, Type type, ParamNode*next) {
     ParamNode*node = (ParamNode*)malloc(sizeof(ParamNode));
     node->identifier = id;
     node->type = type;
-    node->next = NULL;
+    node->next = next;
 
     return node;
 }
@@ -91,15 +98,15 @@ void addParam(char*id, Type type) {
     }
 }
 
-int addParamsToSymbolTable(char*id) {
-    FunctionSymbolNode*node = findFunction(id);
+int addParamsToSymbolFunctionTable(FunctionSymbolNode*node) {
+    ParamNode*param = node->paramsList;
 
-    while(paramsList != NULL) {
-        if(!insertSymbol(paramsList->identifier, paramsList->type, (Value)0, node->hashTable)) {
+    while(param != NULL) {
+        if(!insertSymbol(param->identifier, param->type, (Value)0, node->hashTable)) {
             return 0;
         }
         
-        paramsList = paramsList->next;
+        param = param->next;
     }
 
     return 1;

@@ -15,7 +15,7 @@
 /**
  * Methods definitions 
 */
-HashTable* initTable(); // reserves memory for the symbol table
+HashTable*initTable(); // reserves memory for the symbol table
 int hash(char*c); // makes simple hash with the identifier string
 SymbolNode*createNode(char*id, Type t, Value val, HashTable* hashTable); // creates a symbol table node
 SymbolNode*findSymbol(char*id, HashTable* hashTable); // search id in symbol table, return NULL if not found

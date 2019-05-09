@@ -5,9 +5,13 @@
   #include "definitions.h"
   #include "symbolTable.h"
   #include "syntaxTree.h"
+  #include "functionSymbolTable"
 
   char*error; // to store error messages
   LLNode*rem; // to check for errors in insertion to the symbol table
+
+  HashTable*global;
+  HashTable*currentTable;
 
   extern int lines; // line counter
   extern FILE* yyin; // input file
@@ -20,6 +24,8 @@
 %token <intVal> INTV
 %token <floatVal> FLOATV
 %type <nodePointer> stmt expr expression term factor stmt_lst opt_stmts
+%type <argNode> opt_args arg_lst
+%type <paramNode> opt_params param_lst param
 %token 
     BEGINS END IF ELSE WHILE DO FOR FOREACH THEN PRINT READ
     VAR LET BOOLEAN FLOAT PROCEDURE PROGRAM
@@ -34,7 +40,9 @@
   float floatVal;
   char*stringVal;
   int type;
-  struct TreeNode* nodePointer;
+  TreeNode*nodePointer;
+  ArgNode*argNode;
+  ParamNode*paramNode;
 }
 
 %%
@@ -88,14 +96,14 @@ id_lst:
     printf("id_lst -> Identifier , id_lst: %d\n", ++counter);
     #endif
 
-    addRemaining($1); 
+    addRemaining($1, currentTable); 
   } |
   IDENTIFIER { 
     #ifdef _PRINT_STACK_TRACE
     printf("id_lst -> Identifier: %d\n", ++counter);
     #endif
 
-    addRemaining($1); 
+    addRemaining($1, currentTable); 
   }
 ;
 
@@ -105,14 +113,14 @@ type:
     printf("type -> Int: %d\n", ++counter);
     #endif
 
-    if((rem = insertRemaining($1)) != NULL) {sprintf(error, "Symbol %s already declared", rem->identifier); yyerror(error); return 1;} 
+    if((rem = insertRemaining($1, currentTable)) != NULL) {sprintf(error, "Symbol %s already declared", rem->identifier); yyerror(error); return 1;} 
   } | 
   REAL { 
     #ifdef _PRINT_STACK_TRACE
     printf("type -> Real: %d\n", ++counter);
     #endif
 
-    if((rem = insertRemaining($1)) != NULL) {sprintf(error, "Symbol %s already declared", rem->identifier); yyerror(error); return 1;} 
+    if((rem = insertRemaining($1, currentTable)) != NULL) {sprintf(error, "Symbol %s already declared", rem->identifier); yyerror(error); return 1;} 
   }
 ;
 
@@ -133,11 +141,15 @@ fun_delcs:
     #ifdef _PRINT_STACK_TRACE
     printf("fun_decls -> fun_decl , fun_decls : %d\n", ++counter);
     #endif
+
+    currentTable = initTable();
   } | 
   fun_decl {
     #ifdef _PRINT_STACK_TRACE
     printf("fun_decls -> fun_decl : %d\n", ++counter);
     #endif
+
+    currentTable = initTable();
   }
 ;
 
@@ -146,6 +158,20 @@ fun_decl:
     #ifdef _PRINT_STACK_TRACE
     printf("fun_decl -> fun id (opt_params) : type opt_decls begin opt_stmts end\n", ++counter);
     #endif
+
+    FunctionSymbolNode*function = findFunction($2);
+    if(function != NULL) {sprintf(error, "Function %s already declared", $1); yyerror(error); return 1; }
+
+    TreeNode*syntaxTree = $9;
+    ṔaramNode*paramList = $4;
+
+    function = createFunctionNode($2, $7, currentTable, syntaxTree, paramList);
+    
+    if(!addParamToFunctionSymbolTable(function)) {sprintf(error, "Parameters and variables of functions cannot haver the same identifier."); yyerror(error); return 1;}
+  
+    insertFunction(function);
+
+    currentTable = global;
   }
 ;
 
@@ -154,7 +180,15 @@ opt_params:
     #ifdef _PRINT_STACK_TRACE
     printf("param_lst -> param_lst\n", ++counter);
     #endif
-  } | 
+
+    $$ = $1;
+  } | {
+    #ifdef _PRINT_STACK_TRACE
+    printf("opt_params -> Nothing\n", ++counter);
+    #endif
+
+    $$ = NULL;
+  }
 ;
 
 param_lst: 
@@ -162,11 +196,17 @@ param_lst:
     #ifdef _PRINT_STACK_TRACE
     printf("param_lst -> param , param_lst\n", ++counter);
     #endif
+
+    $paramNode = $1;
+    $paramNode->next = $3;
+    $$ = paramNode;
   } | 
   param {
     #ifdef _PRINT_STACK_TRACE
     printf("param_lst -> param\n", ++counter);
     #endif
+
+    $$ = $1;
   }
 ;
 
@@ -175,6 +215,8 @@ param:
     #ifdef _PRINT_STACK_TRACE
     printf("param -> deintifier: type\n", ++counter);
     #endif
+
+    $$ = createParamNode($1, $3, NULL);
   }
 ;
 
@@ -393,7 +435,32 @@ factor:
     $$ = createTreeNode(IREALNUM, real, (Value)$1, NULL, NULL, NULL, NULL);
   } |
   IDENTIFIER PARENTHESIS opt_args CPARENTHESIS {
+    #ifdef _PRINT_STACK_TRACE
+    printf("factor -> id(opt_args)\n", ++counter);
+    #endif
+
+    FunctionSymbolNode*function = findFunction($1);
+    if(function != NULL) {sprintf(error, "Function %s is not declared.", $1); yyerror(error); return 1; }
+
+    ArgNode*args = $3;
+    ArgNode*arg = arg;
+    ParamNode param = function->paramList;
+
+    // Check that the number and type of arguments matches the parameters required
+    int count = 1;
+    while(param != NULL) {
+      if(arg == NULL) {sprintf(error, "Invalid call to %s. Missing arguments.", function->id); yyerror(error); return 1; }
+      if(param->type != arg->type) {sprintf(error, "Invalid call to %s. Type mismatch in argument %d.", function->id, count); yyerror(error); return 1; }
     
+      param = param->next;
+      arg = arg->next;
+      count++;
+    }
+    if(arg != NULL) {sprintf(error, "Invalid call to %s. More arguments than required given.", function->id); yyerror(error); return 1; }
+
+    TreeNode*functionNode = createTreeNode(IFUNCTION, function->type, (Value)0, function->identifier, NULL, NULL, NULL);
+    functioNode->argList = args;
+    $$ = functionNode;
   }
 ;
 
@@ -466,11 +533,21 @@ expression:
 ;
 
 opt_args: 
-  arg_lst | 
+  arg_lst {
+    $$ = $1;
+  } |
+   {
+     return NULL;
+   } 
 ;
 
 arg_lst:
-  expr COMMA arg_lst | expr
+  expr COMMA arg_lst {
+    $$ = createArgNode($1, $2);
+  } | 
+  expr {
+    $$ = createArgNode($1, NULL);
+  }
 ;
 
 %%
@@ -871,7 +948,8 @@ int main(int argc, char **argv) {
     }
 
     error = (char*)malloc(sizeof(char)*1000);
-    initTable();
+    gloabl = initTable();
+    currentTable = global;
     int res = yyparse();
   
     if(!res) {

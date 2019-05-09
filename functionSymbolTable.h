@@ -3,15 +3,17 @@
 
 #include "definitions.h"
 
-FunctionSymbolNode**functionsST;
+FunctionSymbolNode** functionsTable;
+ParamNode*paramsList;
 
 void initFunctionsTable();
 int hash(char*c); // makes simple hash with the identifier string
-FunctionSymbolNode*createFunctionNode(char*identifier, int paramsCount, Type type, HashTable hashTable, TreeNode*syntaxTree, ParamNode*paramsList);
+FunctionSymbolNode*createFunctionNode(char*identifier, Type type, HashTable hashTable, TreeNode*syntaxTree, ParamNode*paramsList);
+ParamNode*createParamNode(char*id, Type type, ParamNode*next);
+ArgNode*createArgNode(TreeNode*syntaxTree, ArgNode*next);
 FunctionSymbolNode*findFunction(char*id);
-ParamNode*createParamNode(char*id, Type type);
 int insertFunctionSymbol(FunctionSymbolNode node);
 void addParam(char*id, Type type);
-int addParamsToSymbolTable(char*id);
+int addParamsToSymbolTable(ParamNode*paramList, FunctionSymbolNode node);
 
 #endif

@@ -78,19 +78,19 @@ typedef struct ParamNode {
     struct ParamNode*next;
 } ParamNode;
 
+typedef struct HashTable {
+    SymbolNode** table;
+    LLNode* remaining;
+} HashTable;
+
 typedef struct FunctionSymbolNode {
     int paramsCount;
     char*identifier;
     Type type;
     TreeNode*syntaxTree;
-    SymbolNode**symbolTable;
+    HashTable*hashTable;
     ParamNode*paramsList;
     struct FunctionSymbolNode*next;
 } FunctionSymbolNode;
-
-typedef struct HashTable {
-    SymbolNode** table;
-    LLNode* remaining;
-} HashTable;
 
 #endif

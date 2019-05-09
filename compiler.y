@@ -657,6 +657,10 @@ int evalExpression(TreeNode* expressionNode){
       case IBIGGER:
         return leftExpr > rightExpr? 1: 0;
         break;
+      case IBIGGEROREQUAL:
+        return leftExpr >= rightExpr? 1:0;
+      case ISMALLEROREQUAL:
+        return leftExpr <= rightExpr? 1:0;
       default:
         #ifdef _PRINT_EXECUTION_TRACE
         printf("Something went wrong eval expression");

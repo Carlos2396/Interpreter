@@ -24,7 +24,7 @@
     BEGINS END IF ELSE WHILE DO FOR FOREACH THEN PRINT READ
     VAR LET BOOLEAN FLOAT PROCEDURE PROGRAM
     PLUS MINUS SLASH ASTERISK BIGGER BIGGEROREQUAL SMALLER SMALLEROREQUAL EQUAL ASSIGNMENT
-    DOT COLON TWODOTS SEMICOLON PARENTHESIS CPARENTHESIS BRACKET CBRACKET
+    DOT COMMA COLON SEMICOLON PARENTHESIS CPARENTHESIS BRACKET CBRACKET
 
 %start prog
 
@@ -75,7 +75,7 @@ decl_lst:
 ;
 
 decl: 
-  LET id_lst TWODOTS type {
+  LET id_lst COLON type {
     #ifdef _PRINT_STACK_TRACE
     printf("decl -> id_lst : type: %d\n", ++counter);
     #endif
@@ -83,7 +83,7 @@ decl:
 ;
 
 id_lst: 
-  IDENTIFIER COLON id_lst { 
+  IDENTIFIER COMMA id_lst { 
     #ifdef _PRINT_STACK_TRACE
     printf("id_lst -> Identifier , id_lst: %d\n", ++counter);
     #endif
@@ -114,6 +114,30 @@ type:
 
     if((rem = insertRemaining($1)) != NULL) {sprintf(error, "Symbol %s already declared", rem->identifier); yyerror(error); return 1;} 
   }
+;
+
+opt_fun_decls:
+  fun_decls | 
+;
+
+fun_delcs:
+  fun_decl COMMA fun_decls | fun_decl
+;
+
+fun_decl:
+  FUN IDENTIFIER PARENTHESIS opt_params CPARENTHESIS COLON type opt_decls BEGIN opt_stmts END
+;
+
+opt_params:
+  param_lst | 
+;
+
+param_lst: 
+  param COMMA param_lst | param
+;
+
+param: 
+  IDENTIFIER COLON type
 ;
 
 stmt: 
@@ -329,6 +353,9 @@ factor:
     #endif
 
     $$ = createTreeNode(IREALNUM, real, (Value)$1, NULL, NULL, NULL, NULL);
+  } |
+  IDENTIFIER PARENTHESIS opt_args CPARENTHESIS {
+    
   }
 ;
 
@@ -359,7 +386,7 @@ expression:
 
     $$ = createTreeNode(IBIGGER, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
-  expr EQUAL expr{
+  expr EQUAL expr {
     #ifdef _PRINT_STACK_TRACE
     printf("expression -> Equal: %d\n", ++counter);
     #endif
@@ -371,7 +398,41 @@ expression:
     }
 
     $$ = createTreeNode(IEQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
+  } |
+  expr SMALLEROREQUAL expr {
+    #ifdef _PRINT_STACK_TRACE
+    printf("expression -> Smaller or equal: %d\n", ++counter);
+    #endif
+
+    if($1->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
+      yyerror(error); 
+      return 1;
+    }
+
+    $$ = createTreeNode(ISMALLEROREQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
+  } | 
+  expr BIGGEROREQUAL {
+    #ifdef _PRINT_STACK_TRACE
+    printf("expression -> Bigger or equal: %d\n", ++counter);
+    #endif
+
+    if($1->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
+      yyerror(error);
+      return 1;
+    }
+
+    $$ = createTreeNode(IBIGGEROREQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
   }
+;
+
+opt_args: 
+  arg_lst | 
+;
+
+arg_lst:
+  expr COMMA arg_lst | expr
 ;
 
 %%

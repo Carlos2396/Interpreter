@@ -82,22 +82,6 @@ int insertFunctionSymbol(FunctionSymbolNode*node) {
     return 1;
 }
 
-void addParam(char*id, Type type) {
-    ParamNode*node = createParamNode(id, type);
-
-    if(paramsList == NULL) {
-        paramsList = node;
-    }
-    else {
-        ParamNode*ptr = paramsList;
-        while(ptr->next != NULL) {
-            ptr = ptr->next;
-        }
-
-        ptr->next = node;
-    }
-}
-
 int addParamsToSymbolFunctionTable(FunctionSymbolNode*node) {
     ParamNode*param = node->paramsList;
 

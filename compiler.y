@@ -24,7 +24,7 @@
     BEGINS END IF ELSE WHILE DO FOR FOREACH THEN PRINT READ
     VAR LET BOOLEAN FLOAT PROCEDURE PROGRAM
     PLUS MINUS SLASH ASTERISK BIGGER BIGGEROREQUAL SMALLER SMALLEROREQUAL EQUAL ASSIGNMENT
-    DOT COLON TWODOTS SEMICOLON PARENTHESIS CPARENTHESIS BRACKET CBRACKET
+    DOT COMMA COLON SEMICOLON PARENTHESIS CPARENTHESIS BRACKET CBRACKET
 
 %start prog
 
@@ -75,7 +75,7 @@ decl_lst:
 ;
 
 decl: 
-  LET id_lst TWODOTS type {
+  LET id_lst COLON type {
     #ifdef _PRINT_STACK_TRACE
     printf("decl -> id_lst : type: %d\n", ++counter);
     #endif
@@ -83,7 +83,7 @@ decl:
 ;
 
 id_lst: 
-  IDENTIFIER COLON id_lst { 
+  IDENTIFIER COMMA id_lst { 
     #ifdef _PRINT_STACK_TRACE
     printf("id_lst -> Identifier , id_lst: %d\n", ++counter);
     #endif
@@ -114,6 +114,30 @@ type:
 
     if((rem = insertRemaining($1)) != NULL) {sprintf(error, "Symbol %s already declared", rem->identifier); yyerror(error); return 1;} 
   }
+;
+
+opt_fun_decls:
+  fun_decls | 
+;
+
+fun_delcs:
+  fun_decl COMMA fun_decls | fun_decl
+;
+
+fun_decl:
+  FUN IDENTIFIER PARENTHESIS opt_params CPARENTHESIS COLON type opt_decls BEGIN opt_stmts END
+;
+
+opt_params:
+  param_lst | 
+;
+
+param_lst: 
+  param COMMA param_lst | param
+;
+
+param: 
+  IDENTIFIER COLON type
 ;
 
 stmt: 
@@ -329,6 +353,9 @@ factor:
     #endif
 
     $$ = createTreeNode(IREALNUM, real, (Value)$1, NULL, NULL, NULL, NULL);
+  } |
+  IDENTIFIER PARENTHESIS opt_args CPARENTHESIS {
+    
   }
 ;
 
@@ -359,7 +386,7 @@ expression:
 
     $$ = createTreeNode(IBIGGER, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
-  expr EQUAL expr{
+  expr EQUAL expr {
     #ifdef _PRINT_STACK_TRACE
     printf("expression -> Equal: %d\n", ++counter);
     #endif
@@ -371,12 +398,46 @@ expression:
     }
 
     $$ = createTreeNode(IEQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
+  } |
+  expr SMALLEROREQUAL expr {
+    #ifdef _PRINT_STACK_TRACE
+    printf("expression -> Smaller or equal: %d\n", ++counter);
+    #endif
+
+    if($1->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
+      yyerror(error); 
+      return 1;
+    }
+
+    $$ = createTreeNode(ISMALLEROREQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
+  } | 
+  expr BIGGEROREQUAL {
+    #ifdef _PRINT_STACK_TRACE
+    printf("expression -> Bigger or equal: %d\n", ++counter);
+    #endif
+
+    if($1->type != $3->type){
+      sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
+      yyerror(error);
+      return 1;
+    }
+
+    $$ = createTreeNode(IBIGGEROREQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
   }
+;
+
+opt_args: 
+  arg_lst | 
+;
+
+arg_lst:
+  expr COMMA arg_lst | expr
 ;
 
 %%
 
-handleError(int code, char*message) {
+void handleError(int code, char*message) {
   fprintf(stderr, RED"Runtime error (%d): %s\n", code, message);
   exit(1);
 }
@@ -397,6 +458,7 @@ void printFunction(TreeNode* printNode);
 void assignFunction(TreeNode* assignNode);
 void beginFunction(TreeNode* beginNode);
 void execTree(TreeNode* root);
+
 int readInteger() {
   int i;
   printf("Enter an integer number value: ");
@@ -436,14 +498,12 @@ void printFunction(TreeNode*printNode) {
       break;
     }
     case real: {
-
-      //printf("lol/n");
       float exprRes = evalExprFloat(printNode->left);
       printf("%f\n", exprRes);
       break;
     }
     default:
-      #ifdef _PRINT_STACK_TRACE
+      #ifdef _PRINT_EXECUTION_TRACE
       printf("Something went wrong print function\n");
       exit(1);
       #endif
@@ -463,13 +523,13 @@ int evalFactorInt(TreeNode* factorNode){
       return factorNode->val.intV;
       break;
     case IREALNUM:
-      #ifdef _PRINT_STACK_TRACE
-      printf("Something went wrong evalFactorInt had a real");
-      exit(1);
+      #ifdef _PRINT_EXECUTION_TRACE
+        printf("Something went wrong evalFactorInt had a real");
+        exit(1);
       #endif
       break;
     default:
-      #ifdef _PRINT_STACK_TRACE
+      #ifdef _PRINT_EXECUTION_TRACE
       printf("Something went wrong evalFactorInt default");
       exit(1);
       #endif
@@ -526,7 +586,7 @@ float evalFactorFloat(TreeNode* factorNode){
       return factorNode->symbolTableNode->val.realV;
       break;
     case IINTNUM:
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_EXECUTION_TRACE
       printf("Something went wrong evalFactorInt had a real");
       exit(1);
       #endif
@@ -535,7 +595,7 @@ float evalFactorFloat(TreeNode* factorNode){
       return factorNode->val.realV;
       break;
     default:
-      #ifdef _PRINT_STACK_TRACE
+      #ifdef _PRINT_EXECUTION_TRACE
       printf("Something went wrong evalFactorInt default");
       exit(1);
       #endif
@@ -589,26 +649,16 @@ int evalExpression(TreeNode* expressionNode){
     int rightExpr = evalExprInt(expressionNode->right);
     switch(expressionNode->instruction){
       case ISMALLER:
-        if(leftExpr < rightExpr)
-          return 1;
-        else
-          return 0;
+        return leftExpr < rightExpr? 1: 0;
         break;
       case IEQUAL:
-        if(leftExpr == rightExpr)
-          return 1;
-        else
-          return 0;
+        return leftExpr == rightExpr? 1: 0;
         break;
       case IBIGGER:
-        if(leftExpr > rightExpr){
-          return 1;
-        }
-        else
-          return 0;
+        return leftExpr > rightExpr? 1: 0;
         break;
       default:
-        #ifdef _PRINT_STACK_TRACE
+        #ifdef _PRINT_EXECUTION_TRACE
         printf("Something went wrong eval expression");
         exit(1);
         #endif
@@ -620,28 +670,25 @@ int evalExpression(TreeNode* expressionNode){
     float rightExpr = evalExprFloat(expressionNode->right);
     switch(expressionNode->instruction){
       case ISMALLER:
-        //printf("<\n");
         if(leftExpr < rightExpr)
           return 1;
         else
           return 0;
         break;
       case IEQUAL:
-        //printf("=\n");
         if(leftExpr == rightExpr)
           return 1;
         else
           return 0;
         break;
       case IBIGGER:
-        //printf(">\n");
         if(leftExpr > rightExpr)
           return 1;
         else
           return 0;
         break;
       default:
-        #ifdef _PRINT_STACK_TRACE
+        #ifdef _PRINT_EXECUTION_TRACE
         printf("Something went wrong eval expression");
         exit(1);
         #endif
@@ -706,7 +753,7 @@ void assignFunction(TreeNode* assignNode){
       break;
     }
     default:
-      #ifdef _PRINT_STACK_TRACE
+      #ifdef _PRINT_EXECUTION_TRACE
       printf("Something went wrong assign function");
       exit(1);
       #endif
@@ -715,7 +762,6 @@ void assignFunction(TreeNode* assignNode){
 }
 
 void execTree(TreeNode*root) {
-  //printf("Ahhhhh");
   if(root == NULL) return;
 
   switch(root->instruction) {
@@ -728,27 +774,22 @@ void execTree(TreeNode*root) {
       beginFunction(root);
       break;
 
-    //Angel
     case IIF:
       ifFunction(root);
       break;
 
-    //Angel
     case ITHEN:
       thenFunction(root);
       break;
 
-    //Angel
     case IELSE:
       elseFunction(root);
       break;
 
-    //Angel
     case IWHILE:
       whileFunction(root);
       break;
 
-    //Angel
     case IDO:
       doFunction(root);
       break;
@@ -792,16 +833,11 @@ int main(int argc, char **argv) {
     int res = yyparse();
   
     if(!res) {
-      printf(GREEN"Accepted.\n");
+      printf(GREEN"Accepted.\n\n");
+
+      printf(RESET"Execution output:\n");
+      execTree(root);
     }
-
-    //printSymbolTable();
-
-    printf("\nSystax Tree ------------------------\n");
-    //postOrder(root);
-
-    printf("Execution output:\n");
-    execTree(root);
 
     return 0;
 }

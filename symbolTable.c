@@ -8,12 +8,15 @@
  * Methods
 */
 
-void initTable() {
-    table = (SymbolNode**)calloc(sizeof(SymbolNode*), SIZE);
-    remaining = NULL;
+//Methods that creates a new structure that has a hash table and the remaining to add symbols
+HashTable* initTable() {
+    HashTable* hashTable = (HashTable*)malloc(sizeof(HashTable));
+    hashTable->table = (SymbolNode**)calloc(sizeof(SymbolNode*), SIZE);
+    hashTable->remaining = NULL;
+    return hashTable;
 }
 
-SymbolNode*createSymbolNode(char*id, Type t, Value val) {
+SymbolNode* createSymbolNode(char*id, Type t, Value val) {
     SymbolNode*temp = (SymbolNode*)malloc(sizeof(SymbolNode));
     temp->identifier = strdup(id);
     temp->type = t;
@@ -32,12 +35,12 @@ int hash(char*c) {
     return sum%SIZE;
 }
 
-SymbolNode*findSymbol(char*id) {
+SymbolNode*findSymbol(char*id, HashTable* hashTable) {
     int i = hash(id);
 
-    if(table[i] == NULL) return NULL;
+    if(hashTable->table[i] == NULL) return NULL;
 
-    SymbolNode* ptr = table[i];
+    SymbolNode* ptr = hashTable->table[i];
     while(ptr != NULL && strcmp(id, ptr->identifier) != 0) {
         ptr = ptr->next;
     }
@@ -45,15 +48,15 @@ SymbolNode*findSymbol(char*id) {
     return ptr;
 }
 
-int insertSymbol(char*id, Type type, Value val) {
+int insertSymbol(char*id, Type type, Value val, HashTable* hashTable) {
     int i = hash(id);
     SymbolNode*node = createSymbolNode(id, type, val);
    
-    if(table[i] == NULL) {
-        table[i] = node;
+    if(hashTable->table[i] == NULL) {
+        hashTable->table[i] = node;
         return 1;
     }
-    SymbolNode*ptr = table[i];
+    SymbolNode*ptr = hashTable->table[i];
     while(ptr->next != NULL) {
         if(strcmp(id, ptr->identifier) == 0) return 0;
         
@@ -66,14 +69,14 @@ int insertSymbol(char*id, Type type, Value val) {
     return 1;
 }
 
-int removeSymbol(char*id) {
+int removeSymbol(char*id, HashTable* hashTable) {
     int i = hash(id);
-    SymbolNode*node = findSymbol(id);
+    SymbolNode*node = findSymbol(id, hashTable);
 
     if(id == NULL) return 0;
 
-    if(table[i] == node) {
-        table[i] = table[i]->next;
+    if(hashTable->table[i] == node) {
+        hashTable->table[i] = hashTable->table[i]->next;
         free(node);
     }
     else {
@@ -88,8 +91,8 @@ int removeSymbol(char*id) {
     return 1;
 }
 
-int modifySymbol(char*id, Value val) {
-    SymbolNode*node = findSymbol(id);
+int modifySymbol(char*id, Value val, HashTable* hashTable) {
+    SymbolNode*node = findSymbol(id, hashTable);
 
     if(node == NULL) return 0;
     
@@ -98,18 +101,18 @@ int modifySymbol(char*id, Value val) {
     return 1;
 }
 
-void addRemaining(char*id) {
+void addRemaining(char*id, HashTable* hashTable) {
     if(id == NULL) return;
 
     LLNode*temp = (LLNode*)malloc(sizeof(LLNode));
     temp->identifier = strdup(id);
 
-    if(remaining == NULL) {
-        remaining = temp;
+    if(hashTable->remaining == NULL) {
+        hashTable->remaining = temp;
         return;
     }
 
-    LLNode*ptr = remaining;
+    LLNode*ptr = hashTable->remaining;
     while(ptr->next != NULL) {
         ptr = ptr->next;
     }
@@ -117,10 +120,11 @@ void addRemaining(char*id) {
     ptr->next = temp;
 }
 
-LLNode*insertRemaining(Type type) {
-    while(remaining != NULL) {
-        if(!insertSymbol(remaining->identifier, type, (Value)0)) return remaining;
-        remaining = remaining->next;
+LLNode*insertRemaining(Type type, HashTable* hashTable) {
+    while(hashTable->remaining != NULL) {
+        if(!insertSymbol(hashTable->remaining->identifier, type, (Value)0, hashTable)) 
+            return hashTable->remaining;
+        hashTable->remaining = hashTable->remaining->next;
     }
 
     return NULL;
@@ -133,20 +137,45 @@ void printDashes(int n) {
     printf("\n");
 }
 
-void printSymbolTable() {
+void printSymbolTable(HashTable* hashTable) {
     int i;
 
     printf(RESET"\nSymbol table\n");
     printDashes(25);
     for(i=0; i<SIZE; i++) {
-        if(table[i] == NULL) continue;
+        if(hashTable->table[i] == NULL) continue;
 
-        SymbolNode*ptr = table[i];
+        SymbolNode*ptr = hashTable->table[i];
         while(ptr != NULL) {
             printf("|%10s |%10s |\n", ptr->identifier, ptr->type == integer? "integer": "real");
             printDashes(25);
 
             ptr = ptr->next;
+        }
+    }
+}
+
+SymbolNode* copySymbolList(SymbolNode* list){
+    SymbolNode* newList;
+    newList = createSymbolNode(list->identifier, list->type, list->val);
+    SymbolNode* temp = newList;
+    list = list->next;
+    while(list!=NULL){
+        temp->next = createSymbolNode(list->identifier, list->type, list->val);
+        temp = temp->next;
+        list = list->next;
+    }
+
+    temp->next = NULL;
+    return newList;
+}
+
+HashTable* copySymbolTable(HashTable* hashTable){
+    HashTable* newTable = initTable();
+    int i = 0;
+    for(i = 0; i < SIZE; i++){
+        if(hashTable->table[i] != NULL){
+            newTable->table[i] = copySymbolList(hashTable->table[i]);
         }
     }
 }

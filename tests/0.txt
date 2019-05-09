@@ -1,0 +1,19 @@
+program programID
+let ptr:integer
+
+begin
+    read ptr;
+    print ptr;
+
+    while ptr > 0 do
+    begin
+    print ptr;
+        if ptr/2 = 0 then
+            print 1
+        else
+            print 0
+        ;
+        
+        ptr := ptr - 1
+    end
+end

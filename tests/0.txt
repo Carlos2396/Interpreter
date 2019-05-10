@@ -2,32 +2,14 @@ program programID
 let int:integer;
 let dob:real
 
-fun myFuntion(a:integer, b:integer) : integer
-let c: integer
+fun fact(x:integer) : integer
 begin
-    c := a + b;
-    print c
-end,
-
-fun myFuntion2(d:real, e:real) : integer
-let f: real
-begin
-    f := d + e;
-    print f
-end,
-
-fun myFuntion3(g:integer, h:real) : real
-let i: real;
-let j: integer
-begin
-    i := h + 1.0;
-    j := g + 1;
-    print j
+    returnVal x + 5
 end
 
 begin
-    int := 10;
-    dob := 5.0;
+    int := fact(5);
+    print 1;
     print int;
-    print dob
+    print fact(4)
 end

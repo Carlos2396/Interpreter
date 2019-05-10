@@ -107,6 +107,7 @@ SymbolNode** copySymbolTable(SymbolNode** hashTable){
             newTable[i] = copySymbolList(hashTable[i]);
         }
     }
+    return newTable;
 }
 
 void printDashes(int n) {

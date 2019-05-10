@@ -312,9 +312,9 @@ stmt:
     TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
     $$ = createTreeNode(IBEGIN, null, (Value)0, NULL, $2, NULL, endNode);
   } |
-  RETURN expr{
-    #ifdef _PRINT_STACK_TRACE
-    printf("stmt -> Return: %d\n", ++counter);
+  RETURN expr {
+    #ifdef _PRINT_PARSE_TRACE
+    printf(BLUE"stmt -> Return: %d\n"RESET, ++counter);
     #endif
     $$ = createTreeNode(IRETURN, null, (Value)0, NULL, $2, NULL, NULL);
   }
@@ -946,7 +946,7 @@ int execFunctionFunctionInt(TreeNode* functionNode, SymbolNode** hashTable){
 }
 
 int execFunctionInt(TreeNode*root, SymbolNode** hashTable) {
-  if(root == NULL) return 0;
+  if(root == NULL) return 8;
 
   switch(root->instruction) {
     case ISEMICOLON:
@@ -995,7 +995,7 @@ int execFunctionInt(TreeNode*root, SymbolNode** hashTable) {
       return evalExprInt(root->left, hashTable);
       break;
   }
-  return 0;
+  return 8;
 }
 
 float execFunctionFunctionFloat(TreeNode* functionNode, SymbolNode** hashTable){

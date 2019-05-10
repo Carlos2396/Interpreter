@@ -100,7 +100,7 @@ FunctionCallNode*addFunctionCall(FunctionCallNode*calls, FunctionCallNode*call) 
     if(calls == NULL) return call;
     
     FunctionCallNode*c = calls;
-    while (c != NULL) {
+    while (c->next != NULL) {
         c = c->next;
     }
     

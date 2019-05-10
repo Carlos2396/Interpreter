@@ -126,9 +126,8 @@ id_lst:
     printf(BLUE"id_lst -> Identifier: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
     #endif
 
+    $$ = createDeclNode($1, NULL);
     declsFlag = 1;
-
-    $$ = createDeclNode($1, NULL); 
   }
 ;
 
@@ -143,7 +142,7 @@ type:
   REAL { 
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"type -> Real: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
-    #endif 
+    #endif
 
     if(!declsFlag) functionType = real;
   }
@@ -196,12 +195,13 @@ fun_decl:
 
     insertFunctionSymbol(function);
 
-    FunctionSymbolNode*calledFunction;
+    printf("Fucntion calls\n");
     while(functionCalls != NULL) {
       printf("Call to function %s\n", functionCalls->treeNode->identifier);
       function = findFunction(functionCalls->treeNode->identifier);
       if(function == NULL) {sprintf(error, "Function %s is not declared.", functionCalls->treeNode->identifier); yyerror(error); return 1; }
 
+      functionCalls->treeNode->type = function->type;
       ArgNode*args = functionCalls->treeNode->argList;
       ArgNode*arg = args;
       ParamNode*param = function->paramsList;
@@ -237,8 +237,6 @@ opt_params:
     printf(BLUE"opt_params -> Nothing: %d\n"RESET, ++counter);
     #endif
 
-    if(currentTable == globalTable) currentTable = initSymbolTable();
-
     $$ = NULL;
   }
 ;
@@ -267,7 +265,7 @@ param:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"param -> deintifier: type : %d\n"RESET, ++counter);
     #endif
-    
+
     if(currentTable == globalTable) currentTable = initSymbolTable();
 
     ParamNode*param = createParamNode($1, $3, NULL);
@@ -356,7 +354,9 @@ stmt:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"stmt -> Return: %d\n"RESET, ++counter);
     #endif
-    $$ = createTreeNode(IRETURN, null, (Value)0, NULL, $2, NULL, NULL);
+
+    TreeNode*exprNode = $2;
+    $$ = createTreeNode(IRETURN, exprNode->type, (Value)0, NULL, exprNode, NULL, NULL);
   }
 ;
 
@@ -477,7 +477,7 @@ factor:
   } |
   IDENTIFIER {
     #ifdef _PRINT_PARSE_TRACE
-    printf(BLUE"factor -> Identifier %s: %d\n"RESET, $1, ++counter);
+    printf(BLUE"factor -> Identifier: %d\n"RESET, ++counter);
     #endif
 
     SymbolNode*symbol = findSymbol($1, currentTable);
@@ -591,33 +591,18 @@ expression:
 
 opt_args: 
   arg_lst {
-    #ifdef _PRINT_PARSE_TRACE
-    printf(BLUE"opt_args -> args_lst: %d\n"RESET, ++counter);
-    #endif
     $$ = $1;
   } |
    {
-    #ifdef _PRINT_PARSE_TRACE
-    printf(BLUE"opt_args -> Nothing: %d\n"RESET, ++counter);
-    #endif
-    
-    $$ =  NULL;
-  } 
+     $$ =  NULL;
+   } 
 ;
 
 arg_lst:
   expr COMMA arg_lst {
-    #ifdef _PRINT_PARSE_TRACE
-    printf(BLUE"args_lst -> expr, arg_lst: %d\n"RESET, ++counter);
-    #endif
-
     $$ = createArgNode($1, $3);
   } | 
   expr {
-    #ifdef _PRINT_PARSE_TRACE
-    printf(BLUE"args_lst -> expr: %d\n"RESET, ++counter);
-    #endif
-
     $$ = createArgNode($1, NULL);
   }
 ;

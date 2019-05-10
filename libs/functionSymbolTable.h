@@ -19,6 +19,6 @@ FunctionCallNode*createFunctionCallNode(TreeNode*treeNode, FunctionCallNode*next
 int insertFunctionSymbol(FunctionSymbolNode*node);
 int addParamsToSymbolFunctionTable(SymbolNode**hashTable, ParamNode*paramsList);
 void printArgsList(ArgNode*args);
-void addFunctionCall(FunctionCallNode*calls, FunctionCallNode*call);
+FunctionCallNode*addFunctionCall(FunctionCallNode*calls, FunctionCallNode*call);
 
 #endif

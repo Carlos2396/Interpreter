@@ -73,8 +73,8 @@ return        { return RETURN; }
 ";"             { return SEMICOLON; }
 "("             { return PARENTHESIS; }
 ")"             { return CPARENTHESIS; }
-"{"             { return BRACKET; }
-"}"             { return CBRACKET; }
+"["             { return BRACKET; }
+"]"             { return CBRACKET; }
 
 .              { }
 %%

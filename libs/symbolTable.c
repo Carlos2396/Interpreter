@@ -10,7 +10,7 @@
 
 //Methods that creates a new structure that has a hash table and the remaining to add symbols
 SymbolNode**initSymbolTable() {
-    SymbolNode** hashTable = (SymbolNode**)calloc(sizeof(SymbolNode*), SIZE);
+    SymbolNode**hashTable = (SymbolNode**)calloc(sizeof(SymbolNode*), SIZE);
     return hashTable;
 }
 

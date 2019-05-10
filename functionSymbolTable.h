@@ -12,6 +12,7 @@ ParamNode*createParamNode(char*id, Type type, ParamNode*next);
 ArgNode*createArgNode(TreeNode*syntaxTree, ArgNode*next);
 FunctionSymbolNode*findFunction(char*id);
 int insertFunctionSymbol(FunctionSymbolNode*node);
-int addParamsToSymbolFunctionTable(FunctionSymbolNode*node);
+int addParamsToSymbolFunctionTable(HashTable*hashTable, ParamNode*paramsList);
+void printArgsList(ArgNode*args);
 
 #endif

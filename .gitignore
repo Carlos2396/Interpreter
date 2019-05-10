@@ -2,4 +2,4 @@
 .vscode/
 compiler.tab.c
 compiler.tab.h
-lexx.yy.c
+lex.yy.c

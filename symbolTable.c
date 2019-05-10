@@ -130,7 +130,7 @@ void printDashes(int n) {
 void printSymbolTable(HashTable* hashTable) {
     int i;
 
-    printf(RESET"\nSymbol table\n");
+    printf(RESET"Symbol table\n");
     printDashes(25);
     for(i=0; i<SIZE; i++) {
         if(hashTable->table[i] == NULL) continue;

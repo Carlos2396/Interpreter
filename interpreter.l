@@ -48,6 +48,7 @@ real          { yylval.type = real; return REAL; }
 float         { return FLOAT; }
 boolean       { return BOOLEAN; }
 procedure     { return PROCEDURE; }
+fun           { return FUN; }
 program       { return PROGRAM; }
 {IDENTIFIERE} { yylval.stringVal = strdup(yytext); return IDENTIFIER; }
 

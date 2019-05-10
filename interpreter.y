@@ -25,7 +25,7 @@
 %token <intVal> INTV
 %token <floatVal> FLOATV
 %type <type> type
-%type <nodePointer> stmt expr expression term factor stmt_lst opt_stmts fun_decls
+%type <nodePointer> stmt expr expression term factor stmt_lst opt_stmts fun_lst
 %type <argNode> opt_args arg_lst
 %type <paramNode> opt_params param_lst param
 %token 
@@ -53,7 +53,7 @@
 
 %%
 prog: PROGRAM IDENTIFIER opt_decls opt_fun_decls BEGINS opt_stmts END {
-  #ifdef _PRINT_STACK_TRACE
+  #ifdef _PRINT_PARSE_TRACE
   printf("Program: %d\n", ++counter);
   #endif
 
@@ -65,11 +65,11 @@ prog: PROGRAM IDENTIFIER opt_decls opt_fun_decls BEGINS opt_stmts END {
 
 opt_decls: 
   decl_lst {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("opt_decls -> decl_lst: %d\n", ++counter);
     #endif
   } | {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("opt_decls -> NOTHING: %d\n", ++counter);
     #endif
   }
@@ -77,12 +77,12 @@ opt_decls:
 
 decl_lst: 
   decl SEMICOLON decl_lst {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("decl_lst -> decl ; decl_lst: %d\n", ++counter);
     #endif
   } | 
   decl {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("decl_lst -> decl: %d\n", ++counter);
     #endif
   }
@@ -90,7 +90,7 @@ decl_lst:
 
 decl: 
   LET id_lst COLON type {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("decl -> id_lst : type: %d\n", ++counter);
     #endif
   }
@@ -98,15 +98,15 @@ decl:
 
 id_lst: 
   IDENTIFIER COMMA id_lst { 
-    #ifdef _PRINT_STACK_TRACE
-    printf("id_lst -> Identifier , id_lst: %d\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("id_lst -> Identifier , id_lst: %d  table %s\n", ++counter, currentTable == global? "global": "function");
     #endif
 
     addRemaining($1, currentTable); 
   } |
   IDENTIFIER { 
-    #ifdef _PRINT_STACK_TRACE
-    printf("id_lst -> Identifier: %d\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("id_lst -> Identifier: %d  table %s\n", ++counter, currentTable == global? "global": "function");
     #endif
 
     addRemaining($1, currentTable); 
@@ -115,15 +115,15 @@ id_lst:
 
 type: 
   INT { 
-    #ifdef _PRINT_STACK_TRACE
-    printf("type -> Int: %d\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("type -> Int: %d  table %s\n", ++counter, currentTable == global? "global": "function");
     #endif
 
     if((rem = insertRemaining($1, currentTable)) != NULL) {sprintf(error, "Symbol %s already declared", rem->identifier); yyerror(error); return 1;} 
   } | 
   REAL { 
-    #ifdef _PRINT_STACK_TRACE
-    printf("type -> Real: %d\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("type -> Real: %d  table %s\n", ++counter, currentTable == global? "global": "function");
     #endif
 
     if((rem = insertRemaining($1, currentTable)) != NULL) {sprintf(error, "Symbol %s already declared", rem->identifier); yyerror(error); return 1;} 
@@ -131,52 +131,50 @@ type:
 ;
 
 opt_fun_decls:
-  fun_decls {
-    #ifdef _PRINT_STACK_TRACE
-    printf("opt_decls -> fun_decls : %d\n", ++counter);
+  fun_lst {
+    #ifdef _PRINT_PARSE_TRACE
+    printf("opt_fun_decls -> fun_lst : %d\n", ++counter);
     #endif
   } | {
-    #ifdef _PRINT_STACK_TRACE
-    printf("opt_decls -> nothing : %d\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("opt_fun_decls -> nothing : %d\n", ++counter);
     #endif
   }
 ;
 
-fun_decls:
-  fun_decl COMMA fun_decls {
-    #ifdef _PRINT_STACK_TRACE
-    printf("fun_decls -> fun_decl , fun_decls : %d\n", ++counter);
+fun_lst:
+  fun_decl COMMA fun_lst {
+    #ifdef _PRINT_PARSE_TRACE
+    printf("fun_lst -> fun_decl , fun_lst : %d\n", ++counter);
     #endif
-
-    currentTable = initTable();
   } | 
   fun_decl {
-    #ifdef _PRINT_STACK_TRACE
-    printf("fun_decls -> fun_decl : %d\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("fun_lst -> fun_decl : %d\n", ++counter);
     #endif
-
-    currentTable = initTable();
   }
 ;
 
 fun_decl:
   FUN IDENTIFIER PARENTHESIS opt_params CPARENTHESIS COLON type opt_decls BEGINS opt_stmts END {
-    #ifdef _PRINT_STACK_TRACE
-    printf("fun_decl -> fun id (opt_params) : type opt_decls begin opt_stmts end\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("fun_decl -> fun id (opt_params) : type opt_decls begin opt_stmts end : %d\n", ++counter);
     #endif
 
     FunctionSymbolNode*function = findFunction($2);
     if(function != NULL) {sprintf(error, "Function %s already declared", $2); yyerror(error); return 1; }
 
+    ParamNode*paramsList = $4;
+
     TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
     TreeNode*syntaxTree = createTreeNode(IBEGIN, null, (Value)0, NULL, $10, NULL, endNode);
-    ParamNode*paramList = $4;
 
-    function = createFunctionNode($2, $7, currentTable, syntaxTree, paramList);
-    
-    if(!addParamsToSymbolFunctionTable(function)) {sprintf(error, "Parameters and variables of functions cannot haver the same identifier."); yyerror(error); return 1;}
+    function = createFunctionNode($2, $7, currentTable, syntaxTree, paramsList);
 
+    #ifdef _PRINT_SYMBOL_TABLES
+    printf("Function %s ", function->identifier);
     printSymbolTable(function->hashTable); 
+    #endif
 
     insertFunctionSymbol(function);
 
@@ -186,14 +184,14 @@ fun_decl:
 
 opt_params:
   param_lst {
-    #ifdef _PRINT_STACK_TRACE
-    printf("param_lst -> param_lst\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("param_lst -> param_lst: %d\n", ++counter);
     #endif
 
     $$ = $1;
   } | {
-    #ifdef _PRINT_STACK_TRACE
-    printf("opt_params -> Nothing\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("opt_params -> Nothing: %d\n", ++counter);
     #endif
 
     $$ = NULL;
@@ -202,8 +200,8 @@ opt_params:
 
 param_lst: 
   param COMMA param_lst {
-    #ifdef _PRINT_STACK_TRACE
-    printf("param_lst -> param , param_lst\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("param_lst -> param , param_lst: %d\n", ++counter);
     #endif
 
     ParamNode*paramNode = $1;
@@ -211,8 +209,8 @@ param_lst:
     $$ = paramNode;
   } | 
   param {
-    #ifdef _PRINT_STACK_TRACE
-    printf("param_lst -> param\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("param_lst -> param: %d\n", ++counter);
     #endif
 
     $$ = $1;
@@ -221,23 +219,32 @@ param_lst:
 
 param: 
   IDENTIFIER COLON type {
-    #ifdef _PRINT_STACK_TRACE
-    printf("param -> deintifier: type\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("param -> deintifier: type : %d\n", ++counter);
     #endif
 
-    $$ = createParamNode($1, $3, NULL);
+    if(currentTable == global) currentTable = initTable();
+
+    ParamNode*param = createParamNode($1, $3, NULL);
+    if(!insertSymbol(param->identifier, param->type, (Value)0, currentTable)) {
+      sprintf(error, "Parameters and variables of functions cannot have the same identifier."); yyerror(error); return 1;
+    }
+
+    $$ = param;
   }
 ;
 
 stmt: 
   IDENTIFIER ASSIGNMENT expr {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("stmt -> Assignment: %d\n", ++counter);
     #endif
 
     SymbolNode*symbol = findSymbol($1, currentTable);
-    if(symbol == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; } 
-    
+    SymbolNode*symbolG = findSymbol($1, currentTable);
+    if(symbol == NULL && symbolG == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; }
+    symbol = symbol == NULL? symbolG: symbol;
+
     if(symbol->type != $3->type) {
       sprintf(error, "Type mismatch, type %d is not type %d", symbol->type, $3->type); 
       yyerror(error); 
@@ -248,7 +255,7 @@ stmt:
     $$ = createTreeNode(IASSIGNMENT, null, (Value)0, NULL, idNode, NULL, $3); 
   } |
   IF expression THEN stmt {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("stmt -> If Then: %d\n", ++counter);
     #endif
 
@@ -256,7 +263,7 @@ stmt:
     $$ = createTreeNode(IIF, null, (Value)0, NULL, $2, NULL, thenNode); 
   } |
   IF expression THEN stmt ELSE stmt {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("stmt -> If Then Else: %d\n", ++counter);
     #endif
 
@@ -265,7 +272,7 @@ stmt:
     $$ = createTreeNode(IIF, null, (Value)0, NULL, $2, thenNode, elseNode);
   } |
   WHILE expression DO stmt {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("stmt -> While Do: %d\n", ++counter);
     #endif
 
@@ -273,25 +280,27 @@ stmt:
     $$ = createTreeNode(IWHILE, null, (Value)0, NULL, $2, NULL, doNode);
   } |
   READ IDENTIFIER { 
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("stmt -> Read: %d\n", ++counter);
     #endif
 
     SymbolNode*symbol = findSymbol($2, currentTable);
-    if(symbol == NULL) { sprintf(error, "Symbol %s not found", $2); yyerror(error); return 1; }
+    SymbolNode*symbolG = findSymbol($2, currentTable);
+    if(symbol == NULL && symbolG == NULL) { sprintf(error, "Symbol %s not found", $2); yyerror(error); return 1; }
+    symbol = symbol == NULL? symbolG: symbol;
     
     TreeNode*idNode = createTreeNode(IIDENTIFIER, symbol->type, (Value)0, symbol->identifier, NULL, NULL, NULL);
     $$ = createTreeNode(IREAD, null, (Value)0, NULL, idNode, NULL, NULL);
   } |
   PRINT expr {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("stmt -> Print: %d\n", ++counter);
     #endif
 
     $$ = createTreeNode(IPRINT, null, (Value)0, NULL, $2, NULL, NULL);
   } |
   BEGINS opt_stmts END {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("stmt -> Begin End: %d\n", ++counter);
     #endif
 
@@ -302,14 +311,14 @@ stmt:
 
 opt_stmts: 
   stmt_lst { 
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("opt_stmts -> stmt_lst: %d\n", ++counter);
     #endif
 
     $$ = $1; 
   }
   | { 
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("opt_stmts -> NOTHING: %d\n", ++counter);
     #endif
 
@@ -319,14 +328,14 @@ opt_stmts:
 
 stmt_lst: 
   stmt SEMICOLON stmt_lst { 
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("stmt_lst -> stmt ; stmt_lst: %d\n", ++counter);
     #endif
 
     $$ = createTreeNode(ISEMICOLON, null, (Value)0, NULL, $1, NULL, $3); 
   } | 
   stmt {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("stmt_lst -> stmt: %d\n", ++counter);
     #endif 
 
@@ -336,7 +345,7 @@ stmt_lst:
 
 expr:   
   expr PLUS term {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("expr -> Plus: %d\n", ++counter);
     #endif
 
@@ -349,7 +358,7 @@ expr:
     $$ = createTreeNode(IPLUS, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   expr MINUS term {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("expr -> Minus: %d\n", ++counter);
     #endif
 
@@ -362,7 +371,7 @@ expr:
     $$ = createTreeNode(IMINUS, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   term {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("expr -> term: %d\n", ++counter);
     #endif
 
@@ -372,7 +381,7 @@ expr:
 
 term: 
   term ASTERISK factor {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("term -> Asterisk: %d\n", ++counter);
     #endif
 
@@ -385,7 +394,7 @@ term:
     $$ = createTreeNode(IASTERISK, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   term SLASH factor {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("term -> Slash: %d\n", ++counter);
     #endif
 
@@ -398,7 +407,7 @@ term:
     $$ = createTreeNode(ISLASH, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   factor {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("term -> factor: %d\n", ++counter);
     #endif
 
@@ -408,7 +417,7 @@ term:
 
 factor: 
   PARENTHESIS expr CPARENTHESIS {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("factor -> Parenthesis: %d\n", ++counter);
     #endif
 
@@ -416,40 +425,39 @@ factor:
     $$ = createTreeNode(IPARENTHESIS, $2->type, (Value)0, NULL, $2, NULL, parNode);
   } |
   IDENTIFIER {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("factor -> Identifier: %d\n", ++counter);
     #endif
 
-    SymbolNode* symbol = findSymbol($1, currentTable);
-    if(symbol == NULL) {
-        sprintf(error, "Symbol %s not found", $1); 
-        yyerror(error); 
-        return 1; 
-    }
+    SymbolNode*symbol = findSymbol($1, currentTable);
+    SymbolNode*symbolG = findSymbol($1, currentTable);
+    if(symbol == NULL && symbolG == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; }
+    symbol = symbol == NULL? symbolG: symbol;
+
     Type symType = symbol-> type;
     $$ =  createTreeNode(IIDENTIFIER, symType, (Value)0, symbol->identifier, NULL, NULL, NULL);
   } |
   INTV {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("factor -> IntV -> %d: %d\n", $1, ++counter);
     #endif
 
     $$ = createTreeNode(IINTNUM, integer, (Value)$1, NULL, NULL, NULL, NULL);
   } |
   FLOATV {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("factor -> FloatV -> %f: %d\n", $1, ++counter);
     #endif
 
     $$ = createTreeNode(IREALNUM, real, (Value)$1, NULL, NULL, NULL, NULL);
   } |
   IDENTIFIER PARENTHESIS opt_args CPARENTHESIS {
-    #ifdef _PRINT_STACK_TRACE
-    printf("factor -> id(opt_args)\n", ++counter);
+    #ifdef _PRINT_PARSE_TRACE
+    printf("factor -> id(opt_args): %d\n", ++counter);
     #endif
 
     FunctionSymbolNode*function = findFunction($1);
-    if(function != NULL) {sprintf(error, "Function %s is not declared.", $1); yyerror(error); return 1; }
+    if(function == NULL) {sprintf(error, "Function %s is not declared.", $1); yyerror(error); return 1; }
 
     ArgNode*args = $3;
     ArgNode*arg = args;
@@ -469,13 +477,19 @@ factor:
 
     TreeNode*functionNode = createTreeNode(IFUNCTION, function->type, (Value)0, function->identifier, NULL, NULL, NULL);
     functionNode->argList = args;
+
+    #ifdef _PRINT_FUN_CALLS
+    printf("Call to function %s\n", function->identifier);
+    printArgsList(args);
+    #endif
+    
     $$ = functionNode;
   }
 ;
 
 expression: 
   expr SMALLER expr {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("expression -> Smaller: %d\n", ++counter);
     #endif
 
@@ -488,7 +502,7 @@ expression:
     $$ = createTreeNode(ISMALLER, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   expr BIGGER expr {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("expression -> Bigger: %d\n", ++counter);
     #endif
 
@@ -501,7 +515,7 @@ expression:
     $$ = createTreeNode(IBIGGER, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   expr EQUAL expr {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("expression -> Equal: %d\n", ++counter);
     #endif
 
@@ -514,7 +528,7 @@ expression:
     $$ = createTreeNode(IEQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   expr SMALLEROREQUAL expr {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("expression -> Smaller or equal: %d\n", ++counter);
     #endif
 
@@ -527,7 +541,7 @@ expression:
     $$ = createTreeNode(ISMALLEROREQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
   } | 
   expr BIGGEROREQUAL expr {
-    #ifdef _PRINT_STACK_TRACE
+    #ifdef _PRINT_PARSE_TRACE
     printf("expression -> Bigger or equal: %d\n", ++counter);
     #endif
 
@@ -998,15 +1012,21 @@ int main(int argc, char **argv) {
     }
 
     error = (char*)malloc(sizeof(char)*1000);
+    initFunctionsTable();
     global = initTable();
     currentTable = global;
     int res = yyparse();
+
+    #ifdef _PRINT_SYMBOL_TABLES
+    printf("Global ");
+    printSymbolTable(global);
+    #endif
   
     if(!res) {
       printf(GREEN"Accepted.\n\n");
 
       printf(RESET"Execution output:\n");
-      execTree(root, NULL);
+      // execTree(root, NULL);
     }
 
     return 0;

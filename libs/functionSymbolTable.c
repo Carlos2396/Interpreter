@@ -88,6 +88,26 @@ int addParamsToSymbolFunctionTable(SymbolNode**hashTable, ParamNode*paramsList) 
     return 1;
 }
 
+FunctionCallNode*createFunctionCallNode(TreeNode*treeNode, FunctionCallNode*next) {
+    FunctionCallNode*node = (FunctionCallNode*)malloc(sizeof(FunctionCallNode));
+    node->treeNode = treeNode;
+    node->next = next;
+
+    return node;
+}
+
+FunctionCallNode*addFunctionCall(FunctionCallNode*calls, FunctionCallNode*call) {
+    if(calls == NULL) return call;
+    
+    FunctionCallNode*c = calls;
+    while (c != NULL) {
+        c = c->next;
+    }
+    
+    c->next = call;
+    return calls;
+}
+
 void printArgsList(ArgNode*args) {
     int i = 1;
     while(args != NULL) {

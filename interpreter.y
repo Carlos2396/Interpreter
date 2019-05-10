@@ -12,6 +12,7 @@
 
   SymbolNode**globalTable;
   SymbolNode**currentTable;
+  FunctionCallNode*functionCalls;
 
   extern int lines; // line counter
   extern FILE* yyin; // input file
@@ -171,7 +172,6 @@ fun_decl:
     if(function != NULL) {sprintf(error, "Function %s already declared", $2); yyerror(error); return 1; }
 
     ParamNode*paramsList = $4;
-
     TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
     TreeNode*syntaxTree = createTreeNode(IBEGIN, null, (Value)0, NULL, $10, NULL, endNode);
 
@@ -184,6 +184,28 @@ fun_decl:
 
     insertFunctionSymbol(function);
 
+    FunctionSymbolNode*calledFunction;
+    while(functionCalls != NULL) {
+      calledFunction = findFunction(functionCalls->treeNode->identifier);
+      if(calledFunction == NULL) {sprintf(error, "Function %s is not declared.", functionCalls->treeNode->identifier); yyerror(error); return 1; }
+
+      ArgNode*args = functionCalls->treeNode->argList;
+      ArgNode*arg = args;
+      ParamNode*param = calledFunction->paramsList;
+
+      // Check that the number and type of arguments matches the parameters required
+      int count = 1;
+      while(param != NULL) {
+        if(arg == NULL) {sprintf(error, "Invalid call to %s. Missing arguments.", calledFunction->identifier); yyerror(error); return 1; }
+        if(param->type != arg->syntaxTree->type) {sprintf(error, "Invalid call to %s. Type mismatch in argument %d.", calledFunction->identifier, count); yyerror(error); return 1; }
+      
+        param = param->next;
+        arg = arg->next;
+        count++;
+      }
+      if(arg != NULL) {sprintf(error, "Invalid call to %s. More arguments than required given.", calledFunction->identifier); yyerror(error); return 1; }
+    }
+
     currentTable = globalTable;
   }
 ;
@@ -193,12 +215,16 @@ opt_params:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"param_lst -> param_lst: %d\n"RESET, ++counter);
     #endif
+    
+    if(currentTable == globalTable) currentTable = initSymbolTable();
 
     $$ = $1;
   } | {
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"opt_params -> Nothing: %d\n"RESET, ++counter);
     #endif
+
+    if(currentTable == globalTable) currentTable = initSymbolTable();
 
     $$ = NULL;
   }
@@ -228,8 +254,6 @@ param:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"param -> deintifier: type : %d\n"RESET, ++counter);
     #endif
-
-    if(currentTable == globalTable) currentTable = initSymbolTable();
 
     ParamNode*param = createParamNode($1, $3, NULL);
     if(!insertSymbol(param->identifier, param->type, (Value)0, currentTable)) {
@@ -467,28 +491,11 @@ factor:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"factor -> id(opt_args): %d\n"RESET, ++counter);
     #endif
-
-    FunctionSymbolNode*function = findFunction($1);
-    if(function == NULL) {sprintf(error, "Function %s is not declared.", $1); yyerror(error); return 1; }
-
-    ArgNode*args = $3;
-    ArgNode*arg = args;
-    ParamNode*param = function->paramsList;
-
-    // Check that the number and type of arguments matches the parameters required
-    int count = 1;
-    while(param != NULL) {
-      if(arg == NULL) {sprintf(error, "Invalid call to %s. Missing arguments.", function->identifier); yyerror(error); return 1; }
-      if(param->type != arg->syntaxTree->type) {sprintf(error, "Invalid call to %s. Type mismatch in argument %d.", function->identifier, count); yyerror(error); return 1; }
     
-      param = param->next;
-      arg = arg->next;
-      count++;
-    }
-    if(arg != NULL) {sprintf(error, "Invalid call to %s. More arguments than required given.", function->identifier); yyerror(error); return 1; }
-
-    TreeNode*functionNode = createTreeNode(IFUNCTION, function->type, (Value)0, function->identifier, NULL, NULL, NULL);
+    TreeNode*functionNode = createTreeNode(IFUNCTION, null, (Value)0, $1, NULL, NULL, NULL);
     functionNode->argList = args;
+
+    functionCalls = addFunctionCall(functionCalls, createFunctionCallNode(functionNode, NULL));
 
     #ifdef _PRINT_FUN_CALLS
     printf(YELLOW"\nCall to function %s\n"RESET, function->identifier);

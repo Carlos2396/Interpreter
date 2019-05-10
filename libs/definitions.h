@@ -62,20 +62,21 @@ typedef struct ParamNode ParamNode;
 typedef struct ArgNode ArgNode;
 typedef struct HashTable HashTable;
 typedef struct FunctionSymbolNode FunctionSymbolNode;
+typedef struct FunctionCallNode FunctionCallNode;
 
 typedef struct SymbolNode {
     char*identifier;
     Type type;
     Value val;  
     struct SymbolNode*next;
-} SymbolNode;
+};
 
-typedef struct DeclNode {
+struct DeclNode {
     char*identifier;
     struct DeclNode*next;
-} DeclNode;
+};
 
-typedef struct TreeNode {
+struct TreeNode {
     Instruction instruction;
     Type type;
     Value val;  
@@ -84,43 +85,48 @@ typedef struct TreeNode {
     struct TreeNode* left;
     struct TreeNode* center;
     struct TreeNode* right;
-} TreeNode;
+};
 
-typedef struct ParamNode {
+struct ParamNode {
     char*identifier;
     Type type;
     struct ParamNode*next;
-} ParamNode;
+};
 
-typedef struct ArgNode {
+struct ArgNode {
     struct TreeNode*syntaxTree;
     struct ArgNode*next;
-} ArgNode;
+};
 
-typedef struct HashTable {
+struct HashTable {
     struct SymbolNode** table;
     struct DeclNode* remaining;
-} HashTable;
+};
 
-typedef struct FunctionSymbolNode {
+struct FunctionSymbolNode {
     char*identifier;
     Type type;
     struct TreeNode*syntaxTree;
     struct SymbolNode**hashTable;
     struct ParamNode*paramsList;
     struct FunctionSymbolNode*next;
-} FunctionSymbolNode;
+};
 
-typedef struct FunctionStackNode{
+struct FunctionStackNode {
     char* identifier;
     Value returnVal;
     struct FunctionStackNode* next;
-} FunctionStackNode;
+};
 
-typedef struct FunctionStack{
+struct FunctionCallNode {
+    struct TreeNode*treeNode;
+    FunctionCallNode*next;
+};
+
+struct FunctionStack{
     struct FunctionStackNode* head;
     struct FunctionStackNode* tail;
-} FunctionStack;
+};
 
 
 /**

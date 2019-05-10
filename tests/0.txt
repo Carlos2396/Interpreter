@@ -4,7 +4,7 @@ let dob:real
 
 fun fact(x:integer) : integer
 begin
-    returnVal x + 5
+    return x
 end
 
 begin

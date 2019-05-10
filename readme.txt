@@ -17,7 +17,6 @@ Available debug compilation flags
 -D_PRINT_PARSE_TRACE
 -D_PRINT_SYMBOL_TABLES
 -D_PRINT_FUN_CALLS
--D__PRINT_EXECUTION_TRACE
 
 To run the program, set the path to the text file as parameter:
     $ ./interpeter.out tests/test.txt

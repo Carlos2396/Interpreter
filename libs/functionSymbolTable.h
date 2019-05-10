@@ -10,12 +10,13 @@ FunctionSymbolNode** functionsTable;
 ParamNode*paramsList;
 
 void initFunctionsTable();
-FunctionSymbolNode*createFunctionNode(char*identifier, Type type, HashTable*hashTable, TreeNode*syntaxTree, ParamNode*paramsList);
+FunctionSymbolNode*createFunctionNode(char*identifier, Type type, SymbolNode**hashTable, TreeNode*syntaxTree, ParamNode*paramsList);
+FunctionSymbolNode*findFunction(char*id);
 ParamNode*createParamNode(char*id, Type type, ParamNode*next);
 ArgNode*createArgNode(TreeNode*syntaxTree, ArgNode*next);
-FunctionSymbolNode*findFunction(char*id);
+
 int insertFunctionSymbol(FunctionSymbolNode*node);
-int addParamsToSymbolFunctionTable(HashTable*hashTable, ParamNode*paramsList);
+int addParamsToSymbolFunctionTable(SymbolNode**hashTable, ParamNode*paramsList);
 void printArgsList(ArgNode*args);
 
 #endif

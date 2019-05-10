@@ -28,5 +28,6 @@ end
 begin
     int := 10;
     dob := 5.0;
-    print myFuntion3(int + 10, dob - 2.0)
+    print int;
+    print dob
 end

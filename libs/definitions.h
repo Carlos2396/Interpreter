@@ -14,6 +14,10 @@
 #define RESET   "\x1b[0m"
 #define RED     "\x1b[31m"
 #define GREEN   "\x1b[32m"
+#define YELLOW  "\x1b[33m"
+#define BLUE    "\x1b[34m"
+#define MAG     "\x1b[35m"
+#define CYAN    "\x1b[36m"
 #define SIZE    32507
 
 /**
@@ -52,7 +56,7 @@ typedef union {
 */
 typedef struct ArgNode ArgNode;
 typedef struct SymbolNode SymbolNode;
-typedef struct LLNode LLNode;
+typedef struct DeclNode DeclNode;
 typedef struct TreeNode TreeNode;
 typedef struct ParamNode ParamNode;
 typedef struct ArgNode ArgNode;
@@ -66,10 +70,10 @@ typedef struct SymbolNode {
     struct SymbolNode*next;
 } SymbolNode;
 
-typedef struct LLNode {
+typedef struct DeclNode {
     char*identifier;
-    struct LLNode*next;
-} LLNode;
+    struct DeclNode*next;
+} DeclNode;
 
 typedef struct TreeNode {
     Instruction instruction;
@@ -95,14 +99,14 @@ typedef struct ArgNode {
 
 typedef struct HashTable {
     struct SymbolNode** table;
-    struct LLNode* remaining;
+    struct DeclNode* remaining;
 } HashTable;
 
 typedef struct FunctionSymbolNode {
     char*identifier;
     Type type;
     struct TreeNode*syntaxTree;
-    struct HashTable*hashTable;
+    struct SymbolNode**hashTable;
     struct ParamNode*paramsList;
     struct FunctionSymbolNode*next;
 } FunctionSymbolNode;

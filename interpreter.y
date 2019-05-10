@@ -8,10 +8,9 @@
   #include "libs/functionSymbolTable.h"
 
   char*error; // to store error messages
-  LLNode*rem; // to check for errors in insertion to the symbol table
 
-  HashTable*global;
-  HashTable*currentTable;
+  SymbolNode**globalTable;
+  SymbolNode**currentTable;
 
   extern int lines; // line counter
   extern FILE* yyin; // input file
@@ -32,6 +31,7 @@
 %type <nodePointer> stmt expr expression term factor stmt_lst opt_stmts fun_lst
 %type <argNode> opt_args arg_lst
 %type <paramNode> opt_params param_lst param
+%type <declNode> decl id_lst
 %token 
     BEGINS END IF ELSE WHILE DO FOR FOREACH THEN PRINT READ FUN
     VAR LET BOOLEAN FLOAT PROCEDURE PROGRAM
@@ -53,12 +53,13 @@
   TreeNode*nodePointer;
   ArgNode*argNode;
   ParamNode*paramNode;
+  DeclNode*declNode;
 }
 
 %%
 prog: PROGRAM IDENTIFIER opt_decls opt_fun_decls BEGINS opt_stmts END {
   #ifdef _PRINT_PARSE_TRACE
-  printf("Program: %d\n", ++counter);
+  printf(BLUE"Program: %d\n"RESET, ++counter);
   #endif
 
   TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL); 
@@ -70,11 +71,11 @@ prog: PROGRAM IDENTIFIER opt_decls opt_fun_decls BEGINS opt_stmts END {
 opt_decls: 
   decl_lst {
     #ifdef _PRINT_PARSE_TRACE
-    printf("opt_decls -> decl_lst: %d\n", ++counter);
+    printf(BLUE"opt_decls -> decl_lst: %d\n"RESET, ++counter);
     #endif
   } | {
     #ifdef _PRINT_PARSE_TRACE
-    printf("opt_decls -> NOTHING: %d\n", ++counter);
+    printf(BLUE"opt_decls -> NOTHING: %d\n"RESET, ++counter);
     #endif
   }
 ;
@@ -82,12 +83,12 @@ opt_decls:
 decl_lst: 
   decl SEMICOLON decl_lst {
     #ifdef _PRINT_PARSE_TRACE
-    printf("decl_lst -> decl ; decl_lst: %d\n", ++counter);
+    printf(BLUE"decl_lst -> decl ; decl_lst: %d\n"RESET, ++counter);
     #endif
   } | 
   decl {
     #ifdef _PRINT_PARSE_TRACE
-    printf("decl_lst -> decl: %d\n", ++counter);
+    printf(BLUE"decl_lst -> decl: %d\n"RESET, ++counter);
     #endif
   }
 ;
@@ -95,53 +96,53 @@ decl_lst:
 decl: 
   LET id_lst COLON type {
     #ifdef _PRINT_PARSE_TRACE
-    printf("decl -> id_lst : type: %d\n", ++counter);
+    printf(BLUE"decl -> id_lst : type: %d\n"RESET, ++counter);
     #endif
+
+    DeclNode*declList = $2;
+    DeclNode*declNode = insertDeclList(declList, $4, currentTable);
+    if(declNode != NULL) {sprintf(error, "Symbol %s already declared", declNode->identifier); yyerror(error); return 1;}
   }
 ;
 
 id_lst: 
   IDENTIFIER COMMA id_lst { 
     #ifdef _PRINT_PARSE_TRACE
-    printf("id_lst -> Identifier , id_lst: %d  table %s\n", ++counter, currentTable == global? "global": "function");
+    printf(BLUE"id_lst -> Identifier , id_lst: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
     #endif
-
-    addRemaining($1, currentTable); 
+    
+    $$ = createDeclNode($1, $3);
   } |
   IDENTIFIER { 
     #ifdef _PRINT_PARSE_TRACE
-    printf("id_lst -> Identifier: %d  table %s\n", ++counter, currentTable == global? "global": "function");
+    printf(BLUE"id_lst -> Identifier: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
     #endif
 
-    addRemaining($1, currentTable); 
+    $$ = createDeclNode($1, NULL); 
   }
 ;
 
 type: 
   INT { 
     #ifdef _PRINT_PARSE_TRACE
-    printf("type -> Int: %d  table %s\n", ++counter, currentTable == global? "global": "function");
+    printf(BLUE"type -> Int: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
     #endif
-
-    if((rem = insertRemaining($1, currentTable)) != NULL) {sprintf(error, "Symbol %s already declared", rem->identifier); yyerror(error); return 1;} 
   } | 
   REAL { 
     #ifdef _PRINT_PARSE_TRACE
-    printf("type -> Real: %d  table %s\n", ++counter, currentTable == global? "global": "function");
-    #endif
-
-    if((rem = insertRemaining($1, currentTable)) != NULL) {sprintf(error, "Symbol %s already declared", rem->identifier); yyerror(error); return 1;} 
+    printf(BLUE"type -> Real: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
+    #endif 
   }
 ;
 
 opt_fun_decls:
   fun_lst {
     #ifdef _PRINT_PARSE_TRACE
-    printf("opt_fun_decls -> fun_lst : %d\n", ++counter);
+    printf(BLUE"opt_fun_decls -> fun_lst : %d\n"RESET, ++counter);
     #endif
   } | {
     #ifdef _PRINT_PARSE_TRACE
-    printf("opt_fun_decls -> nothing : %d\n", ++counter);
+    printf(BLUE"opt_fun_decls -> nothing : %d\n"RESET, ++counter);
     #endif
   }
 ;
@@ -149,12 +150,12 @@ opt_fun_decls:
 fun_lst:
   fun_decl COMMA fun_lst {
     #ifdef _PRINT_PARSE_TRACE
-    printf("fun_lst -> fun_decl , fun_lst : %d\n", ++counter);
+    printf(BLUE"fun_lst -> fun_decl , fun_lst : %d\n"RESET, ++counter);
     #endif
   } | 
   fun_decl {
     #ifdef _PRINT_PARSE_TRACE
-    printf("fun_lst -> fun_decl : %d\n", ++counter);
+    printf(BLUE"fun_lst -> fun_decl : %d\n"RESET, ++counter);
     #endif
   }
 ;
@@ -162,7 +163,7 @@ fun_lst:
 fun_decl:
   FUN IDENTIFIER PARENTHESIS opt_params CPARENTHESIS COLON type opt_decls BEGINS opt_stmts END {
     #ifdef _PRINT_PARSE_TRACE
-    printf("fun_decl -> fun id (opt_params) : type opt_decls begin opt_stmts end : %d\n", ++counter);
+    printf(BLUE"fun_decl -> fun id (opt_params) : type opt_decls begin opt_stmts end : %d\n"RESET, ++counter);
     #endif
 
     FunctionSymbolNode*function = findFunction($2);
@@ -176,26 +177,26 @@ fun_decl:
     function = createFunctionNode($2, $7, currentTable, syntaxTree, paramsList);
 
     #ifdef _PRINT_SYMBOL_TABLES
-    printf("Function %s ", function->identifier);
+    printf(CYAN"\nFunction %s "RESET, function->identifier);
     printSymbolTable(function->hashTable); 
     #endif
 
     insertFunctionSymbol(function);
 
-    currentTable = global;
+    currentTable = globalTable;
   }
 ;
 
 opt_params:
   param_lst {
     #ifdef _PRINT_PARSE_TRACE
-    printf("param_lst -> param_lst: %d\n", ++counter);
+    printf(BLUE"param_lst -> param_lst: %d\n"RESET, ++counter);
     #endif
 
     $$ = $1;
   } | {
     #ifdef _PRINT_PARSE_TRACE
-    printf("opt_params -> Nothing: %d\n", ++counter);
+    printf(BLUE"opt_params -> Nothing: %d\n"RESET, ++counter);
     #endif
 
     $$ = NULL;
@@ -205,7 +206,7 @@ opt_params:
 param_lst: 
   param COMMA param_lst {
     #ifdef _PRINT_PARSE_TRACE
-    printf("param_lst -> param , param_lst: %d\n", ++counter);
+    printf(BLUE"param_lst -> param , param_lst: %d\n"RESET, ++counter);
     #endif
 
     ParamNode*paramNode = $1;
@@ -214,7 +215,7 @@ param_lst:
   } | 
   param {
     #ifdef _PRINT_PARSE_TRACE
-    printf("param_lst -> param: %d\n", ++counter);
+    printf(BLUE"param_lst -> param: %d\n"RESET, ++counter);
     #endif
 
     $$ = $1;
@@ -224,10 +225,10 @@ param_lst:
 param: 
   IDENTIFIER COLON type {
     #ifdef _PRINT_PARSE_TRACE
-    printf("param -> deintifier: type : %d\n", ++counter);
+    printf(BLUE"param -> deintifier: type : %d\n"RESET, ++counter);
     #endif
 
-    if(currentTable == global) currentTable = initTable();
+    if(currentTable == globalTable) currentTable = initSymbolTable();
 
     ParamNode*param = createParamNode($1, $3, NULL);
     if(!insertSymbol(param->identifier, param->type, (Value)0, currentTable)) {
@@ -241,7 +242,7 @@ param:
 stmt: 
   IDENTIFIER ASSIGNMENT expr {
     #ifdef _PRINT_PARSE_TRACE
-    printf("stmt -> Assignment: %d\n", ++counter);
+    printf(BLUE"stmt -> Assignment: %d\n"RESET, ++counter);
     #endif
 
     SymbolNode*symbol = findSymbol($1, currentTable);
@@ -250,7 +251,7 @@ stmt:
     symbol = symbol == NULL? symbolG: symbol;
 
     if(symbol->type != $3->type) {
-      sprintf(error, "Type mismatch, type %d is not type %d", symbol->type, $3->type); 
+      sprintf(error, RED"Type mismatch, type %d is not type %d"RESET, symbol->type, $3->type); 
       yyerror(error); 
       return 1;
     }
@@ -260,7 +261,7 @@ stmt:
   } |
   IF expression THEN stmt {
     #ifdef _PRINT_PARSE_TRACE
-    printf("stmt -> If Then: %d\n", ++counter);
+    printf(BLUE"stmt -> If Then: %d\n"RESET, ++counter);
     #endif
 
     TreeNode*thenNode = createTreeNode(ITHEN, null, (Value)0, NULL, $4, NULL, NULL);
@@ -268,7 +269,7 @@ stmt:
   } |
   IF expression THEN stmt ELSE stmt {
     #ifdef _PRINT_PARSE_TRACE
-    printf("stmt -> If Then Else: %d\n", ++counter);
+    printf(BLUE"stmt -> If Then Else: %d\n"RESET, ++counter);
     #endif
 
     TreeNode*thenNode = createTreeNode(ITHEN, null, (Value)0, NULL, $4, NULL, NULL);
@@ -277,7 +278,7 @@ stmt:
   } |
   WHILE expression DO stmt {
     #ifdef _PRINT_PARSE_TRACE
-    printf("stmt -> While Do: %d\n", ++counter);
+    printf(BLUE"stmt -> While Do: %d\n"RESET, ++counter);
     #endif
 
     TreeNode* doNode = createTreeNode(IDO, null, (Value)0, NULL, $4, NULL, NULL);
@@ -285,7 +286,7 @@ stmt:
   } |
   READ IDENTIFIER { 
     #ifdef _PRINT_PARSE_TRACE
-    printf("stmt -> Read: %d\n", ++counter);
+    printf(BLUE"stmt -> Read: %d\n"RESET, ++counter);
     #endif
 
     SymbolNode*symbol = findSymbol($2, currentTable);
@@ -298,14 +299,14 @@ stmt:
   } |
   PRINT expr {
     #ifdef _PRINT_PARSE_TRACE
-    printf("stmt -> Print: %d\n", ++counter);
+    printf(BLUE"stmt -> Print: %d\n"RESET, ++counter);
     #endif
 
     $$ = createTreeNode(IPRINT, null, (Value)0, NULL, $2, NULL, NULL);
   } |
   BEGINS opt_stmts END {
     #ifdef _PRINT_PARSE_TRACE
-    printf("stmt -> Begin End: %d\n", ++counter);
+    printf(BLUE"stmt -> Begin End: %d\n"RESET, ++counter);
     #endif
 
     TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
@@ -316,14 +317,14 @@ stmt:
 opt_stmts: 
   stmt_lst { 
     #ifdef _PRINT_PARSE_TRACE
-    printf("opt_stmts -> stmt_lst: %d\n", ++counter);
+    printf(BLUE"opt_stmts -> stmt_lst: %d\n"RESET, ++counter);
     #endif
 
     $$ = $1; 
   }
   | { 
     #ifdef _PRINT_PARSE_TRACE
-    printf("opt_stmts -> NOTHING: %d\n", ++counter);
+    printf(BLUE"opt_stmts -> NOTHING: %d\n"RESET, ++counter);
     #endif
 
     $$ = NULL; 
@@ -333,14 +334,14 @@ opt_stmts:
 stmt_lst: 
   stmt SEMICOLON stmt_lst { 
     #ifdef _PRINT_PARSE_TRACE
-    printf("stmt_lst -> stmt ; stmt_lst: %d\n", ++counter);
+    printf(BLUE"stmt_lst -> stmt ; stmt_lst: %d\n"RESET, ++counter);
     #endif
 
     $$ = createTreeNode(ISEMICOLON, null, (Value)0, NULL, $1, NULL, $3); 
   } | 
   stmt {
     #ifdef _PRINT_PARSE_TRACE
-    printf("stmt_lst -> stmt: %d\n", ++counter);
+    printf(BLUE"stmt_lst -> stmt: %d\n"RESET, ++counter);
     #endif 
 
     $$ = $1; 
@@ -350,7 +351,7 @@ stmt_lst:
 expr:   
   expr PLUS term {
     #ifdef _PRINT_PARSE_TRACE
-    printf("expr -> Plus: %d\n", ++counter);
+    printf(BLUE"expr -> Plus: %d\n"RESET, ++counter);
     #endif
 
     if($1->type != $3->type){
@@ -363,7 +364,7 @@ expr:
   } |
   expr MINUS term {
     #ifdef _PRINT_PARSE_TRACE
-    printf("expr -> Minus: %d\n", ++counter);
+    printf(BLUE"expr -> Minus: %d\n"RESET, ++counter);
     #endif
 
     if($1->type != $3->type){
@@ -376,7 +377,7 @@ expr:
   } |
   term {
     #ifdef _PRINT_PARSE_TRACE
-    printf("expr -> term: %d\n", ++counter);
+    printf(BLUE"expr -> term: %d\n"RESET, ++counter);
     #endif
 
     $$ =  $1;
@@ -386,7 +387,7 @@ expr:
 term: 
   term ASTERISK factor {
     #ifdef _PRINT_PARSE_TRACE
-    printf("term -> Asterisk: %d\n", ++counter);
+    printf(BLUE"term -> Asterisk: %d\n"RESET, ++counter);
     #endif
 
     if($1->type != $3->type){
@@ -399,7 +400,7 @@ term:
   } |
   term SLASH factor {
     #ifdef _PRINT_PARSE_TRACE
-    printf("term -> Slash: %d\n", ++counter);
+    printf(BLUE"term -> Slash: %d\n"RESET, ++counter);
     #endif
 
     if($1->type != $3->type){
@@ -412,7 +413,7 @@ term:
   } |
   factor {
     #ifdef _PRINT_PARSE_TRACE
-    printf("term -> factor: %d\n", ++counter);
+    printf(BLUE"term -> factor: %d\n"RESET, ++counter);
     #endif
 
     $$ = $1;
@@ -422,7 +423,7 @@ term:
 factor: 
   PARENTHESIS expr CPARENTHESIS {
     #ifdef _PRINT_PARSE_TRACE
-    printf("factor -> Parenthesis: %d\n", ++counter);
+    printf(BLUE"factor -> Parenthesis: %d\n"RESET, ++counter);
     #endif
 
     TreeNode* parNode = createTreeNode(ICPARENTHESIS, $2->type, (Value)0, NULL, NULL, NULL, NULL);
@@ -430,7 +431,7 @@ factor:
   } |
   IDENTIFIER {
     #ifdef _PRINT_PARSE_TRACE
-    printf("factor -> Identifier: %d\n", ++counter);
+    printf(BLUE"factor -> Identifier: %d\n"RESET, ++counter);
     #endif
 
     SymbolNode*symbol = findSymbol($1, currentTable);
@@ -443,21 +444,21 @@ factor:
   } |
   INTV {
     #ifdef _PRINT_PARSE_TRACE
-    printf("factor -> IntV -> %d: %d\n", $1, ++counter);
+    printf(BLUE"factor -> IntV -> %d: %d\n"RESET, $1, ++counter);
     #endif
 
     $$ = createTreeNode(IINTNUM, integer, (Value)$1, NULL, NULL, NULL, NULL);
   } |
   FLOATV {
     #ifdef _PRINT_PARSE_TRACE
-    printf("factor -> FloatV -> %f: %d\n", $1, ++counter);
+    printf(BLUE"factor -> FloatV -> %f: %d\n"RESET, $1, ++counter);
     #endif
 
     $$ = createTreeNode(IREALNUM, real, (Value)$1, NULL, NULL, NULL, NULL);
   } |
   IDENTIFIER PARENTHESIS opt_args CPARENTHESIS {
     #ifdef _PRINT_PARSE_TRACE
-    printf("factor -> id(opt_args): %d\n", ++counter);
+    printf(BLUE"factor -> id(opt_args): %d\n"RESET, ++counter);
     #endif
 
     FunctionSymbolNode*function = findFunction($1);
@@ -483,7 +484,7 @@ factor:
     functionNode->argList = args;
 
     #ifdef _PRINT_FUN_CALLS
-    printf("Call to function %s\n", function->identifier);
+    printf(YELLOW"\nCall to function %s\n"RESET, function->identifier);
     printArgsList(args);
     #endif
     
@@ -494,7 +495,7 @@ factor:
 expression: 
   expr SMALLER expr {
     #ifdef _PRINT_PARSE_TRACE
-    printf("expression -> Smaller: %d\n", ++counter);
+    printf(BLUE"expression -> Smaller: %d\n"RESET, ++counter);
     #endif
 
     if($1->type != $3->type){
@@ -507,7 +508,7 @@ expression:
   } |
   expr BIGGER expr {
     #ifdef _PRINT_PARSE_TRACE
-    printf("expression -> Bigger: %d\n", ++counter);
+    printf(BLUE"expression -> Bigger: %d\n"RESET, ++counter);
     #endif
 
     if($1->type != $3->type){
@@ -520,7 +521,7 @@ expression:
   } |
   expr EQUAL expr {
     #ifdef _PRINT_PARSE_TRACE
-    printf("expression -> Equal: %d\n", ++counter);
+    printf(BLUE"expression -> Equal: %d\n"RESET, ++counter);
     #endif
 
     if($1->type != $3->type){
@@ -533,7 +534,7 @@ expression:
   } |
   expr SMALLEROREQUAL expr {
     #ifdef _PRINT_PARSE_TRACE
-    printf("expression -> Smaller or equal: %d\n", ++counter);
+    printf(BLUE"expression -> Smaller or equal: %d\n"RESET, ++counter);
     #endif
 
     if($1->type != $3->type){
@@ -546,7 +547,7 @@ expression:
   } | 
   expr BIGGEROREQUAL expr {
     #ifdef _PRINT_PARSE_TRACE
-    printf("expression -> Bigger or equal: %d\n", ++counter);
+    printf(BLUE"expression -> Bigger or equal: %d\n"RESET, ++counter);
     #endif
 
     if($1->type != $3->type){
@@ -584,23 +585,23 @@ void handleError(int code, char*message) {
   exit(1);
 }
 
-int evalExprInt(TreeNode* exprNode, HashTable* hashTable);
-int evalTermInt(TreeNode* termNode, HashTable* hashTable);
-int evalFactorInt(TreeNode* factorNode, HashTable* hashTable);
-float evalExprFloat(TreeNode* exprNode, HashTable* hashTable);
-float evalTermFloat(TreeNode* termNode, HashTable* hashTable);
-float evalFactorFloat(TreeNode* factorNode, HashTable* hashTable);
-int evalExpression(TreeNode* expressionNode, HashTable* hashTable);
-void ifFunction(TreeNode* ifNode, HashTable* hashTable);
-void thenFunction(TreeNode* thenNode, HashTable* hashTable);
-void elseFunction(TreeNode* elseNode, HashTable* hashTable);
-void whileFunction(TreeNode* whileNode, HashTable* hashTable);
-void doFunction(TreeNode* doNode, HashTable* hashTable);
-void printFunction(TreeNode* printNode, HashTable* hashTable);
-void assignFunction(TreeNode* assignNode, HashTable* hashTable);
-void beginFunction(TreeNode* beginNode, HashTable* hashTable);
-void execFunctionFunction(TreeNode* functNode, HashTable* hashTable);
-void execTree(TreeNode* root, HashTable* hashTable);
+int evalExprInt(TreeNode* exprNode, SymbolNode** hashTable);
+int evalTermInt(TreeNode* termNode, SymbolNode** hashTable);
+int evalFactorInt(TreeNode* factorNode, SymbolNode** hashTable);
+float evalExprFloat(TreeNode* exprNode, SymbolNode** hashTable);
+float evalTermFloat(TreeNode* termNode, SymbolNode** hashTable);
+float evalFactorFloat(TreeNode* factorNode, SymbolNode** hashTable);
+int evalExpression(TreeNode* expressionNode, SymbolNode** hashTable);
+void ifFunction(TreeNode* ifNode, SymbolNode** hashTable);
+void thenFunction(TreeNode* thenNode, SymbolNode** hashTable);
+void elseFunction(TreeNode* elseNode, SymbolNode** hashTable);
+void whileFunction(TreeNode* whileNode, SymbolNode** hashTable);
+void doFunction(TreeNode* doNode, SymbolNode** hashTable);
+void printFunction(TreeNode* printNode, SymbolNode** hashTable);
+void assignFunction(TreeNode* assignNode, SymbolNode** hashTable);
+void beginFunction(TreeNode* beginNode, SymbolNode** hashTable);
+void execFunctionFunction(TreeNode* functNode, SymbolNode** hashTable);
+void execTree(TreeNode* root, SymbolNode** hashTable);
 
 int readInteger() {
   int i;
@@ -622,7 +623,7 @@ float readReal() {
   return f;
 }
 
-void readFunction(TreeNode*readNode, HashTable* hashTable) {
+void readFunction(TreeNode*readNode, SymbolNode** hashTable) {
 
   SymbolNode* symbol = findSymbol(readNode->left->identifier, globalTable);
   SymbolNode* symbol2 = hashTable == NULL? NULL : findSymbol(readNode->left->identifier, hashTable);
@@ -639,7 +640,7 @@ void readFunction(TreeNode*readNode, HashTable* hashTable) {
   }
 }
 
-void printFunction(TreeNode*printNode, HashTable* hashTable) {
+void printFunction(TreeNode*printNode, SymbolNode** hashTable) {
   switch(printNode->left->type){
     case integer: {
       int exprRes = evalExprInt(printNode->left, hashTable);
@@ -652,15 +653,12 @@ void printFunction(TreeNode*printNode, HashTable* hashTable) {
       break;
     }
     default:
-      #ifdef _PRINT_EXECUTION_TRACE
-      printf("Something went wrong print function\n");
       exit(1);
-      #endif
       break;
   }
 }
 
-int evalFactorInt(TreeNode* factorNode, HashTable* hashTable){
+int evalFactorInt(TreeNode* factorNode, SymbolNode** hashTable){
   switch(factorNode->instruction){
     case IPARENTHESIS:
       return evalExprInt(factorNode-> left, hashTable);
@@ -682,15 +680,12 @@ int evalFactorInt(TreeNode* factorNode, HashTable* hashTable){
       #endif
       break;
     default:
-      #ifdef _PRINT_EXECUTION_TRACE
-      printf("Something went wrong evalFactorInt default");
       exit(1);
-      #endif
       break;
   }
 }
 
-int evalTermInt(TreeNode* termNode, HashTable* hashTable){
+int evalTermInt(TreeNode* termNode, SymbolNode** hashTable){
   switch(termNode->instruction){
     case IASTERISK: {
       int leftTerm = evalTermInt(termNode->left, hashTable);
@@ -710,7 +705,7 @@ int evalTermInt(TreeNode* termNode, HashTable* hashTable){
   }
 }
 
-int evalExprInt(TreeNode* exprNode, HashTable* hashTable){
+int evalExprInt(TreeNode* exprNode, SymbolNode** hashTable){
   switch(exprNode->instruction){
     case IPLUS:{
       int leftExpr = evalExprInt(exprNode->left, hashTable);
@@ -730,7 +725,7 @@ int evalExprInt(TreeNode* exprNode, HashTable* hashTable){
   }
 }
 
-float evalFactorFloat(TreeNode* factorNode, HashTable* hashTable){
+float evalFactorFloat(TreeNode* factorNode, SymbolNode** hashTable){
   SymbolNode*symbol;
   SymbolNode*symbol2;
   switch(factorNode->instruction){
@@ -753,15 +748,12 @@ float evalFactorFloat(TreeNode* factorNode, HashTable* hashTable){
       return factorNode->val.realV;
       break;
     default:
-      #ifdef _PRINT_EXECUTION_TRACE
-      printf("Something went wrong evalFactorInt default");
       exit(1);
-      #endif
       break;
   }
 }
 
-float evalTermFloat(TreeNode* termNode, HashTable* hashTable){
+float evalTermFloat(TreeNode* termNode, SymbolNode** hashTable){
   switch(termNode->instruction) {
     case IASTERISK:{
       float leftTerm = evalTermFloat(termNode->left, hashTable);
@@ -781,7 +773,7 @@ float evalTermFloat(TreeNode* termNode, HashTable* hashTable){
   }
 }
 
-float evalExprFloat(TreeNode* exprNode, HashTable* hashTable){
+float evalExprFloat(TreeNode* exprNode, SymbolNode** hashTable){
   switch(exprNode->instruction){
     case IPLUS:{
       float leftExpr = evalExprFloat(exprNode->left, hashTable);
@@ -801,7 +793,7 @@ float evalExprFloat(TreeNode* exprNode, HashTable* hashTable){
   }
 }
 
-int evalExpression(TreeNode* expressionNode, HashTable* hashTable){
+int evalExpression(TreeNode* expressionNode, SymbolNode** hashTable){
   if(expressionNode->type == integer){
     int leftExpr = evalExprInt(expressionNode->left, hashTable);
     int rightExpr = evalExprInt(expressionNode->right, hashTable);
@@ -820,10 +812,7 @@ int evalExpression(TreeNode* expressionNode, HashTable* hashTable){
       case ISMALLEROREQUAL:
         return leftExpr <= rightExpr? 1:0;
       default:
-        #ifdef _PRINT_EXECUTION_TRACE
-        printf("Something went wrong eval expression");
         exit(1);
-        #endif
         break;
     }
   }
@@ -850,16 +839,13 @@ int evalExpression(TreeNode* expressionNode, HashTable* hashTable){
           return 0;
         break;
       default:
-        #ifdef _PRINT_EXECUTION_TRACE
-        printf("Something went wrong eval expression");
         exit(1);
-        #endif
         break;
     }
   }
 }
 
-void ifFunction(TreeNode* ifNode, HashTable* hashTable){
+void ifFunction(TreeNode* ifNode, SymbolNode** hashTable){
   int exrpessionRes = evalExpression(ifNode->left, hashTable);
   if(exrpessionRes){
     if(ifNode ->center == NULL)
@@ -873,17 +859,17 @@ void ifFunction(TreeNode* ifNode, HashTable* hashTable){
   }
 }
 
-void thenFunction(TreeNode* thenNode, HashTable* hashTable){
+void thenFunction(TreeNode* thenNode, SymbolNode** hashTable){
   execTree(thenNode->left, hashTable);
 }
 
-void elseFunction(TreeNode* elseNode, HashTable* hashTable){
+void elseFunction(TreeNode* elseNode, SymbolNode** hashTable){
   if(elseNode != NULL){
     execTree(elseNode->left, hashTable);
   }
 }
 
-void whileFunction(TreeNode* whileNode, HashTable* hashTable){
+void whileFunction(TreeNode* whileNode, SymbolNode** hashTable){
   int exrpessionRes = evalExpression(whileNode->left, hashTable);
   if(exrpessionRes){
     whileNode->right->right = whileNode;
@@ -891,18 +877,18 @@ void whileFunction(TreeNode* whileNode, HashTable* hashTable){
   }
 }
 
-void doFunction(TreeNode* doNode, HashTable* hashTable){
+void doFunction(TreeNode* doNode, SymbolNode** hashTable){
   //Do stmt
   execTree(doNode->left, hashTable);
   //Check while again
   execTree(doNode->right, hashTable);
 }
 
-void beginFunction(TreeNode* beginNode, HashTable* hashTable){
+void beginFunction(TreeNode* beginNode, SymbolNode** hashTable){
   execTree(beginNode->left, hashTable);
 }
 
-void assignFunction(TreeNode* assignNode, HashTable* hashTable){
+void assignFunction(TreeNode* assignNode, SymbolNode** hashTable){
   switch(assignNode->right->type){
     case integer:{
       int exprRes = evalExprInt(assignNode->right, hashTable);
@@ -917,17 +903,14 @@ void assignFunction(TreeNode* assignNode, HashTable* hashTable){
       break;
     }
     default:
-      #ifdef _PRINT_EXECUTION_TRACE
-      printf("Something went wrong assign function");
       exit(1);
-      #endif
       break;
   }
 }
 
-void execFunctionFunction(TreeNode* functionNode, HashTable* hashTable){
+void execFunctionFunction(TreeNode* functionNode, SymbolNode** hashTable){
   FunctionSymbolNode* functionS = findFunction(functionNode->identifier);
-  HashTable* newFunctTable = copySymbolTable(functionS->hashTable);
+  SymbolNode** newFunctTable = copySymbolTable(functionS->hashTable);
   ArgNode* temp = functionNode->argList;
   ParamNode* params = functionS->paramsList;
   while(temp != NULL){
@@ -945,7 +928,7 @@ void execFunctionFunction(TreeNode* functionNode, HashTable* hashTable){
   execTree(functionS->syntaxTree, newFunctTable);
 }
 
-void execTree(TreeNode*root, HashTable* hashTable) {
+void execTree(TreeNode*root, SymbolNode** hashTable) {
   if(root == NULL) return;
 
   switch(root->instruction) {
@@ -997,7 +980,7 @@ void execTree(TreeNode*root, HashTable* hashTable) {
 
 void yyerror(char const * s) {
   lines++;
-  fprintf(stderr, RED"%s in line %d\n", s, lines);
+  fprintf(stderr, RED"%s in line %d\n"RESET, s, lines);
 }
 
 int main(int argc, char **argv) {
@@ -1015,21 +998,23 @@ int main(int argc, char **argv) {
     }
 
     error = (char*)malloc(sizeof(char)*1000);
+
     initFunctionsTable();
-    global = initTable();
-    currentTable = global;
+    globalTable = initSymbolTable();
+    currentTable = globalTable;
+
     int res = yyparse();
 
     #ifdef _PRINT_SYMBOL_TABLES
-    printf("Global ");
-    printSymbolTable(global);
+    printf(CYAN"\nGlobal "RESET);
+    printSymbolTable(globalTable);
     #endif
   
     if(!res) {
-      printf(GREEN"Accepted.\n\n");
+      printf(GREEN"Successfully compiled.\n\n");
 
       printf(RESET"Execution output:\n");
-      // execTree(root, NULL);
+      execTree(root, NULL);
     }
 
     return 0;

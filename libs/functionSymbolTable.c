@@ -11,7 +11,7 @@ void initFunctionsTable() {
     functionsTable = (FunctionSymbolNode**) calloc(sizeof(FunctionSymbolNode*), SIZE);
 }
 
-FunctionSymbolNode*createFunctionNode(char*id, Type type, HashTable*hashTable, TreeNode*syntaxTree, ParamNode*paramsList) {
+FunctionSymbolNode*createFunctionNode(char*id, Type type, SymbolNode**hashTable, TreeNode*syntaxTree, ParamNode*paramsList) {
     FunctionSymbolNode*node = (FunctionSymbolNode*)malloc(sizeof(FunctionSymbolNode));
     node->identifier = strdup(id);
     node->type = type;
@@ -74,7 +74,7 @@ int insertFunctionSymbol(FunctionSymbolNode*node) {
     return 1;
 }
 
-int addParamsToSymbolFunctionTable(HashTable*hashTable, ParamNode*paramsList) {
+int addParamsToSymbolFunctionTable(SymbolNode**hashTable, ParamNode*paramsList) {
     ParamNode*param = paramsList;
 
     while(param != NULL) {
@@ -91,10 +91,10 @@ int addParamsToSymbolFunctionTable(HashTable*hashTable, ParamNode*paramsList) {
 void printArgsList(ArgNode*args) {
     int i = 1;
     while(args != NULL) {
-        printf("Argument %d\n", i);
+        printf(YELLOW"Argument %d\n", i);
         inOrder(args->syntaxTree);
         args = args->next;
         i++;
     }
-    printf("\n");
+    printf("\n"RESET);
 }

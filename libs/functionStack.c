@@ -62,7 +62,7 @@ void printFunctionSatck(){
     printf("Function Stack\n");
     FunctionStackNode* i = stack->head;
     while(i != NULL){
-        printf("ID: %s, ReturnValInt: %d, ReturnValFloat: %d", i->identifier, i->returnVal.intV, i->returnVal.realV);
+        printf("ID: %s, ReturnValInt: %d, ReturnValFloat: %f", i->identifier, i->returnVal.intV, i->returnVal.realV);
         i = i->next;
     }
 }

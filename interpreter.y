@@ -6,6 +6,7 @@
   #include "libs/symbolTable.h"
   #include "libs/syntaxTree.h"
   #include "libs/functionSymbolTable.h"
+  #include "libs/functionStack.h"
 
   char*error; // to store error messages
 
@@ -607,9 +608,8 @@ void printFunction(TreeNode* printNode, SymbolNode** hashTable);
 void assignFunction(TreeNode* assignNode, SymbolNode** hashTable);
 void beginFunction(TreeNode* beginNode, SymbolNode** hashTable);
 int execFunctionFunctionInt(TreeNode* functNode, SymbolNode** hashTable);
-int execFunctionInt(TreeNode* functNode, SymbolNode** hashTable);
 float execFunctionFunctionFloat(TreeNode* functNode, SymbolNode** hashTable);
-float execFunctionFloat(TreeNode* functNode, SymbolNode** hashTable);
+void execFunction(TreeNode* functNode, SymbolNode** hashTable);
 void execTree(TreeNode* root, SymbolNode** hashTable);
 
 int readInteger() {
@@ -992,8 +992,8 @@ void execFunction(TreeNode*root, SymbolNode** hashTable) {
 
   switch(root->instruction) {
     case ISEMICOLON:
-      execFunctionFloat(root->left, hashTable);
-      execFunctionFloat(root->right, hashTable);
+      execFunction(root->left, hashTable);
+      execFunction(root->right, hashTable);
       break;
 
     case IBEGIN:
@@ -1034,11 +1034,11 @@ void execFunction(TreeNode*root, SymbolNode** hashTable) {
     case IRETURN:{ 
       if(root->left->type == integer){
         int x = evalExprInt(root->left, hashTable);
-        stack->tail->value = (Value)x;
+        stack->tail->returnVal = (Value)x;
       }
       else{
         float x = evalExprFloat(root->left, hashTable);
-        stack->tail->value = (Value)x;
+        stack->tail->returnVal = (Value)x;
       }
       break;
     }
@@ -1116,7 +1116,7 @@ int main(int argc, char **argv) {
     initFunctionsTable();
     globalTable = initSymbolTable();
     currentTable = globalTable;
-
+    initStack();
     int res = yyparse();
 
     #ifdef _PRINT_SYMBOL_TABLES

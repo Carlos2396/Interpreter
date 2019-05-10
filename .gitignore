@@ -2,4 +2,4 @@
 .vscode/
 *.tab.c
 *.tab.h
-lexx.yy.c
+lex.yy.c

@@ -3,7 +3,7 @@
 /* Definitions */
 
 %{
-    #include "compiler.tab.h"
+    #include "interpreter.tab.h"
     #include "definitions.h"
 
     int lines = 1;
@@ -66,8 +66,8 @@ program       { return PROGRAM; }
 ":="            { return ASSIGNMENT; }
 
 "."             { return DOT; }
-","             { return COLON; }
-":"             { return TWODOTS; }
+","             { return COMMA; }
+":"             { return COLON; }
 ";"             { return SEMICOLON; }
 "("             { return PARENTHESIS; }
 ")"             { return CPARENTHESIS; }

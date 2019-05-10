@@ -2,21 +2,9 @@
 #include "symbolTable.h"
 
 FunctionSymbolNode** functionsTable;
-ParamNode*paramsList;
 
 void initFunctionsTable() {
     functionsTable = (FunctionSymbolNode**) calloc(sizeof(FunctionSymbolNode*), SIZE);
-    paramsList = NULL;
-}
-
-int hash(char*c) {
-    int sum = 0;
-    while((*c) != '\0') {
-        sum += *c;
-        c++;
-    }
-
-    return sum%SIZE;
 }
 
 FunctionSymbolNode*createFunctionNode(char*id, Type type, HashTable*hashTable, TreeNode*syntaxTree, ParamNode*paramsList) {

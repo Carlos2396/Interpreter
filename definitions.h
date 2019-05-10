@@ -50,6 +50,15 @@ typedef union {
 /**
  * Structs definitions
 */
+typedef struct ArgNode ArgNode;
+typedef struct SymbolNode SymbolNode;
+typedef struct LLNode LLNode;
+typedef struct TreeNode TreeNode;
+typedef struct ParamNode ParamNode;
+typedef struct ArgNode ArgNode;
+typedef struct HashTable HashTable;
+typedef struct FunctionSymbolNode FunctionSymbolNode;
+
 typedef struct SymbolNode {
     char*identifier;
     Type type;
@@ -67,7 +76,7 @@ typedef struct TreeNode {
     Type type;
     Value val;  
     char*identifier;
-    ArgNode*argList;
+    struct ArgNode*argList;
     struct TreeNode* left;
     struct TreeNode* center;
     struct TreeNode* right;
@@ -80,22 +89,27 @@ typedef struct ParamNode {
 } ParamNode;
 
 typedef struct ArgNode {
-    TreeNode*syntaxTree;
+    struct TreeNode*syntaxTree;
     struct ArgNode*next;
 } ArgNode;
 
 typedef struct HashTable {
-    SymbolNode** table;
-    LLNode* remaining;
+    struct SymbolNode** table;
+    struct LLNode* remaining;
 } HashTable;
 
 typedef struct FunctionSymbolNode {
     char*identifier;
     Type type;
-    TreeNode*syntaxTree;
-    HashTable*hashTable;
-    ParamNode*paramsList;
+    struct TreeNode*syntaxTree;
+    struct HashTable*hashTable;
+    struct ParamNode*paramsList;
     struct FunctionSymbolNode*next;
 } FunctionSymbolNode;
 
+
+/**
+ * Methods
+*/
+int hash(char*c); // makes simple hash with the identifier string
 #endif

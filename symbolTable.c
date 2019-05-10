@@ -25,16 +25,6 @@ SymbolNode* createSymbolNode(char*id, Type t, Value val) {
     return temp;
 }
 
-int hash(char*c) {
-    int sum = 0;
-    while((*c) != '\0') {
-        sum += *c;
-        c++;
-    }
-
-    return sum%SIZE;
-}
-
 SymbolNode*findSymbol(char*id, HashTable* hashTable) {
     int i = hash(id);
 

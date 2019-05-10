@@ -5,7 +5,7 @@
   #include "definitions.h"
   #include "symbolTable.h"
   #include "syntaxTree.h"
-  #include "functionSymbolTable"
+  #include "functionSymbolTable.h"
 
   char*error; // to store error messages
   LLNode*rem; // to check for errors in insertion to the symbol table
@@ -15,6 +15,7 @@
 
   extern int lines; // line counter
   extern FILE* yyin; // input file
+  
   int counter = 0;
 %}
 
@@ -35,12 +36,16 @@
 
 %start prog
 
+%code requires {
+  #include "syntaxTree.h"
+}
+
 // possible values
 %union {
   int intVal;
   float floatVal;
   char*stringVal;
-  int type;
+  Type type;
   TreeNode*nodePointer;
   ArgNode*argNode;
   ParamNode*paramNode;
@@ -165,13 +170,15 @@ fun_decl:
 
     TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
     TreeNode*syntaxTree = createTreeNode(IBEGIN, null, (Value)0, NULL, $10, NULL, endNode);
-    ṔaramNode*paramList = $4;
+    ParamNode*paramList = $4;
 
     function = createFunctionNode($2, $7, currentTable, syntaxTree, paramList);
     
-    if(!addParamToFunctionSymbolTable(function)) {sprintf(error, "Parameters and variables of functions cannot haver the same identifier."); yyerror(error); return 1;}
-  
-    insertFunction(function);
+    if(!addParamsToSymbolFunctionTable(function)) {sprintf(error, "Parameters and variables of functions cannot haver the same identifier."); yyerror(error); return 1;}
+
+    printSymbolTable(function->hashTable); 
+
+    insertFunctionSymbol(function);
 
     currentTable = global;
   }
@@ -228,7 +235,7 @@ stmt:
     printf("stmt -> Assignment: %d\n", ++counter);
     #endif
 
-    SymbolNode*symbol = findSymbol($1);
+    SymbolNode*symbol = findSymbol($1, currentTable);
     if(symbol == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; } 
     
     if(symbol->type != $3->type) {
@@ -270,7 +277,7 @@ stmt:
     printf("stmt -> Read: %d\n", ++counter);
     #endif
 
-    SymbolNode*symbol = findSymbol($2);
+    SymbolNode*symbol = findSymbol($2, currentTable);
     if(symbol == NULL) { sprintf(error, "Symbol %s not found", $2); yyerror(error); return 1; }
     
     TreeNode*idNode = createTreeNode(IIDENTIFIER, symbol->type, (Value)0, symbol->identifier, NULL, NULL, NULL);
@@ -413,7 +420,7 @@ factor:
     printf("factor -> Identifier: %d\n", ++counter);
     #endif
 
-    SymbolNode* symbol = findSymbol($1);
+    SymbolNode* symbol = findSymbol($1, currentTable);
     if(symbol == NULL) {
         sprintf(error, "Symbol %s not found", $1); 
         yyerror(error); 
@@ -445,23 +452,23 @@ factor:
     if(function != NULL) {sprintf(error, "Function %s is not declared.", $1); yyerror(error); return 1; }
 
     ArgNode*args = $3;
-    ArgNode*arg = arg;
-    ParamNode param = function->paramList;
+    ArgNode*arg = args;
+    ParamNode*param = function->paramsList;
 
     // Check that the number and type of arguments matches the parameters required
     int count = 1;
     while(param != NULL) {
-      if(arg == NULL) {sprintf(error, "Invalid call to %s. Missing arguments.", function->id); yyerror(error); return 1; }
-      if(param->type != arg->type) {sprintf(error, "Invalid call to %s. Type mismatch in argument %d.", function->id, count); yyerror(error); return 1; }
+      if(arg == NULL) {sprintf(error, "Invalid call to %s. Missing arguments.", function->identifier); yyerror(error); return 1; }
+      if(param->type != arg->syntaxTree->type) {sprintf(error, "Invalid call to %s. Type mismatch in argument %d.", function->identifier, count); yyerror(error); return 1; }
     
       param = param->next;
       arg = arg->next;
       count++;
     }
-    if(arg != NULL) {sprintf(error, "Invalid call to %s. More arguments than required given.", function->id); yyerror(error); return 1; }
+    if(arg != NULL) {sprintf(error, "Invalid call to %s. More arguments than required given.", function->identifier); yyerror(error); return 1; }
 
     TreeNode*functionNode = createTreeNode(IFUNCTION, function->type, (Value)0, function->identifier, NULL, NULL, NULL);
-    functioNode->argList = args;
+    functionNode->argList = args;
     $$ = functionNode;
   }
 ;
@@ -539,7 +546,7 @@ opt_args:
     $$ = $1;
   } |
    {
-     return NULL;
+     $$ =  NULL;
    } 
 ;
 
@@ -599,12 +606,12 @@ float readReal() {
 
 void readFunction(TreeNode*readNode, HashTable* hashTable) {
 
-  symbolTableNode* symbol = findSymbol(readNode->left->identifier, globalTable);
-  symbolTableNode* symbol2 = hashTable == NULL? NULL : findSymbol(readNode->left->identifier, hashTable);
+  SymbolNode* symbol = findSymbol(readNode->left->identifier, globalTable);
+  SymbolNode* symbol2 = hashTable == NULL? NULL : findSymbol(readNode->left->identifier, hashTable);
   symbol = symbol2 == NULL? symbol : symbol2;
   hashTable = hashTable == NULL? globalTable : hashTable;
 
-  switch(readNode->left->symbolTableNode->type) {
+  switch(symbol->type) {
     case integer:
       modifySymbol(symbol->identifier, (Value)readInteger(), hashTable);
       break;
@@ -617,12 +624,12 @@ void readFunction(TreeNode*readNode, HashTable* hashTable) {
 void printFunction(TreeNode*printNode, HashTable* hashTable) {
   switch(printNode->left->type){
     case integer: {
-      int exprRes = evalExprInt(printNode->left, HashTable* hashTable);
+      int exprRes = evalExprInt(printNode->left, hashTable);
       printf("%d\n", exprRes);
       break;
     }
     case real: {
-      float exprRes = evalExprFloat(printNode->left, HashTable* hashTable);
+      float exprRes = evalExprFloat(printNode->left, hashTable);
       printf("%f\n", exprRes);
       break;
     }
@@ -641,8 +648,8 @@ int evalFactorInt(TreeNode* factorNode, HashTable* hashTable){
       return evalExprInt(factorNode-> left, hashTable);
       break;
     case IIDENTIFIER:{
-      symbolTableNode* symbol = findSymbol(factorNode->identifier, globalTable);
-      symbolTableNode* symbol2 = hashTable == NULL? NULL : findSymbol(factorNode->identifier, hashTable);
+      SymbolNode* symbol = findSymbol(factorNode->identifier, globalTable);
+      SymbolNode* symbol2 = hashTable == NULL? NULL : findSymbol(factorNode->identifier, hashTable);
       symbol = symbol2 == NULL? symbol : symbol2;
       return symbol->val.intV;
       break;
@@ -706,13 +713,15 @@ int evalExprInt(TreeNode* exprNode, HashTable* hashTable){
 }
 
 float evalFactorFloat(TreeNode* factorNode, HashTable* hashTable){
+  SymbolNode*symbol;
+  SymbolNode*symbol2;
   switch(factorNode->instruction){
     case IPARENTHESIS:
       return evalExprFloat(factorNode-> left, hashTable);
       break;
     case IIDENTIFIER:
-      symbolTableNode* symbol = findSymbol(factorNode->identifier, globalTable);
-      symbolTableNode* symbol2 = hashTable == NULL? NULL : findSymbol(factorNode->identifier, hashTable);
+      symbol = findSymbol(factorNode->identifier, globalTable);
+      symbol2 = hashTable == NULL? NULL : findSymbol(factorNode->identifier, hashTable);
       symbol = symbol2 == NULL? symbol : symbol2;
       return symbol->val.realV;
       break;
@@ -735,7 +744,7 @@ float evalFactorFloat(TreeNode* factorNode, HashTable* hashTable){
 }
 
 float evalTermFloat(TreeNode* termNode, HashTable* hashTable){
-  switch(termNode->instruction){
+  switch(termNode->instruction) {
     case IASTERISK:{
       float leftTerm = evalTermFloat(termNode->left, hashTable);
       float rightFactor = evalFactorFloat(termNode->right, hashTable);
@@ -884,7 +893,7 @@ void assignFunction(TreeNode* assignNode, HashTable* hashTable){
       break;
     }
     case real:{
-      float exprRes = evalExprFloat(assignNode->right);
+      float exprRes = evalExprFloat(assignNode->right, hashTable);
       hashTable = hashTable == NULL? globalTable : hashTable;
       modifySymbol(assignNode->left->identifier, (Value)exprRes, hashTable);
       break;
@@ -899,23 +908,23 @@ void assignFunction(TreeNode* assignNode, HashTable* hashTable){
 }
 
 void execFunctionFunction(TreeNode* functionNode, HashTable* hashTable){
-  FuncyionSymbolNode* functionS = findFunction(functNode->identifier);
-  HashTable* newFunctTable = compySymbolTable(functionS->hashTable);
+  FunctionSymbolNode* functionS = findFunction(functionNode->identifier);
+  HashTable* newFunctTable = copySymbolTable(functionS->hashTable);
   ArgNode* temp = functionNode->argList;
-  ParamNode* params = functionS.paramsList;
-  while(temp != null){
+  ParamNode* params = functionS->paramsList;
+  while(temp != NULL){
     if(temp->syntaxTree->type == integer){
       int evaluated = evalExprInt(temp->syntaxTree, hashTable);
-      modifySymbol(params->identifier, evaluated, newFunctTable);
+      modifySymbol(params->identifier, (Value)evaluated, newFunctTable);
     }
     else{
       float evaluated = evalExprFloat(temp->syntaxTree, hashTable);
-      modifySymbol(params->identifier, evaluated, newFunctTable);
+      modifySymbol(params->identifier, (Value)evaluated, newFunctTable);
     }
     temp = temp->next;
     params = params->next;
   }
-  exec(functionS->syntaxTree, newFunctTable);
+  execTree(functionS->syntaxTree, newFunctTable);
 }
 
 void execTree(TreeNode*root, HashTable* hashTable) {
@@ -948,7 +957,7 @@ void execTree(TreeNode*root, HashTable* hashTable) {
       break;
 
     case IDO:
-      doFunction(root), hashTable;
+      doFunction(root, hashTable);
       break;
 
     case IREAD:

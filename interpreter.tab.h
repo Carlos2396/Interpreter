@@ -43,6 +43,12 @@
 #if YYDEBUG
 extern int yydebug;
 #endif
+/* "%code requires" blocks.  */
+#line 39 "interpreter.y" /* yacc.c:1921  */
+
+  #include "syntaxTree.h"
+
+#line 52 "interpreter.tab.h" /* yacc.c:1921  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -98,17 +104,17 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 39 "interpreter.y" /* yacc.c:1921  */
+#line 44 "interpreter.y" /* yacc.c:1921  */
 
   int intVal;
   float floatVal;
   char*stringVal;
-  int type;
+  Type type;
   TreeNode*nodePointer;
   ArgNode*argNode;
   ParamNode*paramNode;
 
-#line 112 "interpreter.tab.h" /* yacc.c:1921  */
+#line 118 "interpreter.tab.h" /* yacc.c:1921  */
 };
 
 typedef union YYSTYPE YYSTYPE;

@@ -111,6 +111,17 @@ typedef struct FunctionSymbolNode {
     struct FunctionSymbolNode*next;
 } FunctionSymbolNode;
 
+typedef struct FunctionStackNode{
+    char* identifier;
+    Value returnVal;
+    struct FunctionStackNode* next;
+} FunctionStackNode;
+
+typedef struct FunctionStack{
+    struct FunctionStackNode* head;
+    struct FunctionStackNode* tail;
+} FunctionStack;
+
 
 /**
  * Methods

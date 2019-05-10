@@ -942,60 +942,18 @@ int execFunctionFunctionInt(TreeNode* functionNode, SymbolNode** hashTable){
     temp = temp->next;
     params = params->next;
   }
-  return execFunctionInt(functionS->syntaxTree, newFunctTable);
-}
-
-int execFunctionInt(TreeNode*root, SymbolNode** hashTable) {
-  if(root == NULL) return 8;
-
-  switch(root->instruction) {
-    case ISEMICOLON:
-      if(root->left->instruction == IRETURN)
-        return execFunctionInt(root->left, hashTable);
-      execFunctionInt(root->left, hashTable);
-      return execFunctionInt(root->right, hashTable);
-      break;
-
-    case IBEGIN:
-      beginFunction(root, hashTable);
-      break;
-
-    case IIF:
-      ifFunction(root, hashTable);
-      break;
-
-    case ITHEN:
-      thenFunction(root, hashTable);
-      break;
-
-    case IELSE:
-      elseFunction(root, hashTable);
-      break;
-
-    case IWHILE:
-      whileFunction(root, hashTable);
-      break;
-
-    case IDO:
-      doFunction(root, hashTable);
-      break;
-
-    case IREAD:
-      readFunction(root, hashTable);
-      break;
-
-    case IPRINT:
-      printFunction(root, hashTable);
-      break;
-
-    case IASSIGNMENT:
-      assignFunction(root, hashTable);
-      break;
-    case IRETURN:
-      return evalExprInt(root->left, hashTable);
-      break;
+  push(functionS->identifier, (Value)0);
+  execFunction(functionS->syntaxTree, newFunctTable);
+  FunctionStackNode* stackNode = pop();
+  #ifdef _PRINT_RETURN_STACK
+  if(functionS->identifier != stackNode->identifier){
+    printf(RED"Algo salió muy mal");
   }
-  return 8;
+  else{
+    printf(BLUE"Al parecer funciono");
+  }
+  #endif
+  return stackNode->returnVal.intV;
 }
 
 float execFunctionFunctionFloat(TreeNode* functionNode, SymbolNode** hashTable){
@@ -1015,18 +973,27 @@ float execFunctionFunctionFloat(TreeNode* functionNode, SymbolNode** hashTable){
     temp = temp->next;
     params = params->next;
   }
-  return execFunctionFloat(functionS->syntaxTree, newFunctTable);
+  push(functionS->identifier, (Value)0);
+  execFunction(functionS->syntaxTree, newFunctTable);
+  FunctionStackNode* stackNode = pop();
+  #ifdef _PRINT_RETURN_STACK
+  if(functionS->identifier != stackNode->identifier){
+    printf(RED"Algo salió muy mal");
+  }
+  else{
+    printf(BLUE"Al parecer funciono");
+  }
+  #endif
+  return stackNode->returnVal.realV;
 }
 
-float execFunctionFloat(TreeNode*root, SymbolNode** hashTable) {
-  if(root == NULL) return 0.0;
+void execFunction(TreeNode*root, SymbolNode** hashTable) {
+  if(root == NULL) return;
 
   switch(root->instruction) {
     case ISEMICOLON:
-      if(root->left->instruction == IRETURN)
-        return execFunctionFloat(root->left, hashTable);
       execFunctionFloat(root->left, hashTable);
-      return execFunctionFloat(root->right, hashTable);
+      execFunctionFloat(root->right, hashTable);
       break;
 
     case IBEGIN:
@@ -1064,11 +1031,18 @@ float execFunctionFloat(TreeNode*root, SymbolNode** hashTable) {
     case IASSIGNMENT:
       assignFunction(root, hashTable);
       break;
-    case IRETURN:
-      return evalExprFloat(root->left, hashTable);
+    case IRETURN:{ 
+      if(root->left->type == integer){
+        int x = evalExprInt(root->left, hashTable);
+        stack->tail->value = (Value)x;
+      }
+      else{
+        float x = evalExprFloat(root->left, hashTable);
+        stack->tail->value = (Value)x;
+      }
       break;
+    }
   }
-  return 0.0;
 }
 
 void execTree(TreeNode*root, SymbolNode** hashTable) {

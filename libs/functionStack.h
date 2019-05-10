@@ -13,6 +13,6 @@ FunctionStackNode*createFunctionStackNode(char*identifier, Value val);
 void push(char*identifier, Value val);
 FunctionStackNode* pop();
 FunctionStackNode* peak();
-void printFunctionSatck();
+void printFunctionStack();
 
 #endif

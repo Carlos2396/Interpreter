@@ -50,7 +50,7 @@ boolean       { return BOOLEAN; }
 procedure     { return PROCEDURE; }
 fun           { return FUN; }
 program       { return PROGRAM; }
-returnVal        { return RETURN; }
+return        { return RETURN; }
 {IDENTIFIERE} { yylval.stringVal = strdup(yytext); return IDENTIFIER; }
 
 {INTE}          { yylval.intVal = atoi(yytext); return INTV; }

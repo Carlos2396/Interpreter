@@ -58,7 +58,7 @@ FunctionStackNode* peak(){
     return stack->tail;
 }
 
-void printFunctionSatck(){
+void printFunctionStack(){
     printf("Function Stack\n");
     FunctionStackNode* i = stack->head;
     while(i != NULL){

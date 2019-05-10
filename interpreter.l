@@ -4,7 +4,7 @@
 
 %{
     #include "interpreter.tab.h"
-    #include "definitions.h"
+    #include "libs/definitions.h"
 
     int lines = 1;
 %}

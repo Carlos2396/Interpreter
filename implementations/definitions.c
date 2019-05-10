@@ -1,4 +1,4 @@
-#include "definitions.h"
+#include "../libs/definitions.h"
 
 int hash(char*c) {
     int sum = 0;

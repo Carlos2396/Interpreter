@@ -9,7 +9,7 @@ Instrucciones de compilado
 Ejecutar los siguientes comandos:
     $ bison -d compiler.y
     $ flex compiler.l
-    $ gcc *.c -lfl
+    $ gcc implementations/*.c *.c -lfl
 
 Available debug compilation tags
 -D_PRINT_PARSE_TRACE

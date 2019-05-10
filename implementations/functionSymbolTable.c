@@ -1,5 +1,5 @@
-#include "definitions.h"
-#include "symbolTable.h"
+#include "../libs/definitions.h"
+#include "../libs/symbolTable.h"
 
 FunctionSymbolNode** functionsTable;
 

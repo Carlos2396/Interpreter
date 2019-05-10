@@ -1,8 +1,8 @@
 /* Carlos Augusto Amador Manilla A01329447 */
 /* Angel Roberto Ruiz Mendoza A01324489 */
 
-#include "definitions.h"
-#include "symbolTable.h"
+#include "../libs/definitions.h"
+#include "../libs/symbolTable.h"
 
 /*
  * Methods

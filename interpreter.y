@@ -2,10 +2,10 @@
 /* Angel Roberto Ruiz Mendoza A01324489 */
 
 %{
-  #include "definitions.h"
-  #include "symbolTable.h"
-  #include "syntaxTree.h"
-  #include "functionSymbolTable.h"
+  #include "libs/definitions.h"
+  #include "libs/symbolTable.h"
+  #include "libs/syntaxTree.h"
+  #include "libs/functionSymbolTable.h"
 
   char*error; // to store error messages
   LLNode*rem; // to check for errors in insertion to the symbol table
@@ -37,7 +37,7 @@
 %start prog
 
 %code requires {
-  #include "syntaxTree.h"
+  #include "libs/syntaxTree.h"
 }
 
 // possible values

@@ -606,7 +606,10 @@ void doFunction(TreeNode* doNode, SymbolNode** hashTable);
 void printFunction(TreeNode* printNode, SymbolNode** hashTable);
 void assignFunction(TreeNode* assignNode, SymbolNode** hashTable);
 void beginFunction(TreeNode* beginNode, SymbolNode** hashTable);
-void execFunctionFunction(TreeNode* functNode, SymbolNode** hashTable);
+int execFunctionFunctionInt(TreeNode* functNode, SymbolNode** hashTable);
+int execFunctionInt(TreeNode* functNode, SymbolNode** hashTable);
+float execFunctionFunctionFloat(TreeNode* functNode, SymbolNode** hashTable);
+float execFunctionFloat(TreeNode* functNode, SymbolNode** hashTable);
 void execTree(TreeNode* root, SymbolNode** hashTable);
 
 int readInteger() {
@@ -685,9 +688,10 @@ int evalFactorInt(TreeNode* factorNode, SymbolNode** hashTable){
         exit(1);
       #endif
       break;
-    case IFUNCTION:
-      return execFunctionFunction(root, hashTable).intV;
+    case IFUNCTION:{ 
+      return execFunctionFunctionInt(factorNode, hashTable);
       break;
+    }
     default:
       exit(1);
       break;
@@ -756,9 +760,10 @@ float evalFactorFloat(TreeNode* factorNode, SymbolNode** hashTable){
     case IREALNUM:
       return factorNode->val.realV;
       break;
-    case IFUNCTION:
-      return execFunctionFunction(root, hashTable).realV;
+    case IFUNCTION:{
+      return execFunctionFunctionFloat(factorNode, hashTable);
       break;
+    }
     default:
       exit(1);
       break;
@@ -920,7 +925,7 @@ void assignFunction(TreeNode* assignNode, SymbolNode** hashTable){
   }
 }
 
-void execFunctionFunction(TreeNode* functionNode, SymbolNode** hashTable){
+int execFunctionFunctionInt(TreeNode* functionNode, SymbolNode** hashTable){
   FunctionSymbolNode* functionS = findFunction(functionNode->identifier);
   SymbolNode** newFunctTable = copySymbolTable(functionS->hashTable);
   ArgNode* temp = functionNode->argList;
@@ -937,7 +942,133 @@ void execFunctionFunction(TreeNode* functionNode, SymbolNode** hashTable){
     temp = temp->next;
     params = params->next;
   }
-  execTree(functionS->syntaxTree, newFunctTable);
+  return execFunctionInt(functionS->syntaxTree, newFunctTable);
+}
+
+int execFunctionInt(TreeNode*root, SymbolNode** hashTable) {
+  if(root == NULL) return 0;
+
+  switch(root->instruction) {
+    case ISEMICOLON:
+      if(root->left->instruction == IRETURN)
+        return execFunctionInt(root->left, hashTable);
+      execFunctionInt(root->left, hashTable);
+      return execFunctionInt(root->right, hashTable);
+      break;
+
+    case IBEGIN:
+      beginFunction(root, hashTable);
+      break;
+
+    case IIF:
+      ifFunction(root, hashTable);
+      break;
+
+    case ITHEN:
+      thenFunction(root, hashTable);
+      break;
+
+    case IELSE:
+      elseFunction(root, hashTable);
+      break;
+
+    case IWHILE:
+      whileFunction(root, hashTable);
+      break;
+
+    case IDO:
+      doFunction(root, hashTable);
+      break;
+
+    case IREAD:
+      readFunction(root, hashTable);
+      break;
+
+    case IPRINT:
+      printFunction(root, hashTable);
+      break;
+
+    case IASSIGNMENT:
+      assignFunction(root, hashTable);
+      break;
+    case IRETURN:
+      return evalExprInt(root->left, hashTable);
+      break;
+  }
+  return 0;
+}
+
+float execFunctionFunctionFloat(TreeNode* functionNode, SymbolNode** hashTable){
+  FunctionSymbolNode* functionS = findFunction(functionNode->identifier);
+  SymbolNode** newFunctTable = copySymbolTable(functionS->hashTable);
+  ArgNode* temp = functionNode->argList;
+  ParamNode* params = functionS->paramsList;
+  while(temp != NULL){
+    if(temp->syntaxTree->type == integer){
+      int evaluated = evalExprInt(temp->syntaxTree, hashTable);
+      modifySymbol(params->identifier, (Value)evaluated, newFunctTable);
+    }
+    else{
+      float evaluated = evalExprFloat(temp->syntaxTree, hashTable);
+      modifySymbol(params->identifier, (Value)evaluated, newFunctTable);
+    }
+    temp = temp->next;
+    params = params->next;
+  }
+  return execFunctionFloat(functionS->syntaxTree, newFunctTable);
+}
+
+float execFunctionFloat(TreeNode*root, SymbolNode** hashTable) {
+  if(root == NULL) return 0.0;
+
+  switch(root->instruction) {
+    case ISEMICOLON:
+      if(root->left->instruction == IRETURN)
+        return execFunctionFloat(root->left, hashTable);
+      execFunctionFloat(root->left, hashTable);
+      return execFunctionFloat(root->right, hashTable);
+      break;
+
+    case IBEGIN:
+      beginFunction(root, hashTable);
+      break;
+
+    case IIF:
+      ifFunction(root, hashTable);
+      break;
+
+    case ITHEN:
+      thenFunction(root, hashTable);
+      break;
+
+    case IELSE:
+      elseFunction(root, hashTable);
+      break;
+
+    case IWHILE:
+      whileFunction(root, hashTable);
+      break;
+
+    case IDO:
+      doFunction(root, hashTable);
+      break;
+
+    case IREAD:
+      readFunction(root, hashTable);
+      break;
+
+    case IPRINT:
+      printFunction(root, hashTable);
+      break;
+
+    case IASSIGNMENT:
+      assignFunction(root, hashTable);
+      break;
+    case IRETURN:
+      return evalExprFloat(root->left, hashTable);
+      break;
+  }
+  return 0.0;
 }
 
 void execTree(TreeNode*root, SymbolNode** hashTable) {

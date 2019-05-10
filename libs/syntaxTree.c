@@ -104,6 +104,9 @@ char*getInstructionText(TreeNode*tRoot) {
         case IASSIGNMENT:
             text = "Assignment";
             break;
+        case IRETURN:
+            text = "return";
+            break;
         default:
             break;
     }

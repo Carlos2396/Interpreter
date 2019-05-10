@@ -49,6 +49,7 @@ float         { return FLOAT; }
 boolean       { return BOOLEAN; }
 procedure     { return PROCEDURE; }
 program       { return PROGRAM; }
+return        { return RETURN; }
 {IDENTIFIERE} { yylval.stringVal = strdup(yytext); return IDENTIFIER; }
 
 {INTE}          { yylval.intVal = atoi(yytext); return INTV; }

@@ -31,7 +31,7 @@
     BEGINS END IF ELSE WHILE DO FOR FOREACH THEN PRINT READ FUN
     VAR LET BOOLEAN FLOAT PROCEDURE PROGRAM
     PLUS MINUS SLASH ASTERISK BIGGER BIGGEROREQUAL SMALLER SMALLEROREQUAL EQUAL ASSIGNMENT
-    DOT COMMA COLON SEMICOLON PARENTHESIS CPARENTHESIS BRACKET CBRACKET
+    DOT COMMA COLON SEMICOLON PARENTHESIS CPARENTHESIS BRACKET CBRACKET RETURN
 
 %start prog
 
@@ -290,6 +290,12 @@ stmt:
 
     TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
     $$ = createTreeNode(IBEGIN, null, (Value)0, NULL, $2, NULL, endNode);
+  } |
+  RETURN expr{
+    #ifdef _PRINT_STACK_TRACE
+    printf("stmt -> Return: %d\n", ++counter);
+    #endif
+    $$ = createTreeNode(IRETURN, null, (Value)0, NULL, $2, NULL, NULL);
   }
 ;
 
@@ -575,6 +581,7 @@ void printFunction(TreeNode* printNode, HashTable* hashTable);
 void assignFunction(TreeNode* assignNode, HashTable* hashTable);
 void beginFunction(TreeNode* beginNode, HashTable* hashTable);
 void execFunctionFunction(TreeNode* functNode, HashTable* hashTable);
+void execFunction(TreeNode* functNode, HashTable* hashTable);
 void execTree(TreeNode* root, HashTable* hashTable);
 
 int readInteger() {
@@ -656,6 +663,9 @@ int evalFactorInt(TreeNode* factorNode, HashTable* hashTable){
         exit(1);
       #endif
       break;
+    case IFUNCTION:
+      return execFunctionFunction(root, hashTable).intV;
+      break;
     default:
       #ifdef _PRINT_EXECUTION_TRACE
       printf("Something went wrong evalFactorInt default");
@@ -724,6 +734,9 @@ float evalFactorFloat(TreeNode* factorNode, HashTable* hashTable){
       break;
     case IREALNUM:
       return factorNode->val.realV;
+      break;
+    case IFUNCTION:
+      return execFunctionFunction(root, hashTable).realV;
       break;
     default:
       #ifdef _PRINT_EXECUTION_TRACE
@@ -898,7 +911,7 @@ void assignFunction(TreeNode* assignNode, HashTable* hashTable){
   }
 }
 
-void execFunctionFunction(TreeNode* functionNode, HashTable* hashTable){
+Value execFunctionFunction(TreeNode* functionNode, HashTable* hashTable){
   FuncyionSymbolNode* functionS = findFunction(functNode->identifier);
   HashTable* newFunctTable = compySymbolTable(functionS->hashTable);
   ArgNode* temp = functionNode->argList;
@@ -915,7 +928,59 @@ void execFunctionFunction(TreeNode* functionNode, HashTable* hashTable){
     temp = temp->next;
     params = params->next;
   }
-  exec(functionS->syntaxTree, newFunctTable);
+  return execFunction(functionS->syntaxTree, newFunctTable);
+}
+
+Value execFunction(TreeNode*root, HashTable* hashTable){
+  if(root == NULL) return (Value)0;
+
+  switch(root->instruction) {
+    case ISEMICOLON:
+      if(root->left->instruction == IRETURN)
+        return execFunction(root->left, hashTable);
+      execFunction(root->left, hashTable);
+      return execFunction(root->right, hashTable);
+      break;
+
+    case IBEGIN:
+      beginFunction(root, hashTable);
+      break;
+
+    case IIF:
+      ifFunction(root, hashTable);
+      break;
+
+    case ITHEN:
+      thenFunction(root, hashTable);
+      break;
+
+    case IELSE:
+      elseFunction(root, hashTable);
+      break;
+
+    case IWHILE:
+      whileFunction(root, hashTable);
+      break;
+
+    case IDO:
+      doFunction(root), hashTable;
+      break;
+
+    case IREAD:
+      readFunction(root, hashTable);
+      break;
+
+    case IPRINT:
+      printFunction(root, hashTable);
+      break;
+
+    case IASSIGNMENT:
+      assignFunction(root, hashTable);
+      break;
+    case IRETURN:
+      return root->left->type == integer? (Value)evalExprInt(root->left, hashTable) : (Value)evalExprFloat(root-> left, hashTable);
+  }
+  return (Value)0;
 }
 
 void execTree(TreeNode*root, HashTable* hashTable) {
@@ -961,9 +1026,6 @@ void execTree(TreeNode*root, HashTable* hashTable) {
 
     case IASSIGNMENT:
       assignFunction(root, hashTable);
-      break;
-    case IFUNCTION:
-      execFunctionFunction(root, hashTable);
       break;
   }
 }

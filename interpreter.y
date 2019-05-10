@@ -286,7 +286,7 @@ stmt:
     #endif
 
     SymbolNode*symbol = findSymbol($1, currentTable);
-    SymbolNode*symbolG = findSymbol($1, currentTable);
+    SymbolNode*symbolG = findSymbol($1, globalTable);
     if(symbol == NULL && symbolG == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; }
     symbol = symbol == NULL? symbolG: symbol;
 
@@ -481,12 +481,11 @@ factor:
     #endif
 
     SymbolNode*symbol = findSymbol($1, currentTable);
-    SymbolNode*symbolG = findSymbol($1, currentTable);
+    SymbolNode*symbolG = findSymbol($1, globalTable);
     if(symbol == NULL && symbolG == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; }
     symbol = symbol == NULL? symbolG: symbol;
 
-    Type symType = symbol-> type;
-    $$ =  createTreeNode(IIDENTIFIER, symType, (Value)0, symbol->identifier, NULL, NULL, NULL);
+    $$ =  createTreeNode(IIDENTIFIER, symbol-> type, (Value)0, symbol->identifier, NULL, NULL, NULL);
   } |
   INTV {
     #ifdef _PRINT_PARSE_TRACE

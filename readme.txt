@@ -2,20 +2,22 @@ Carlos Augusto Amador Manilla
 Angel Roberto Ruiz Mendoza
 
 Compiladores
-Tarea 6
 
-Instrucciones de compilado
+Final Proyect
 
-Ejecutar los siguientes comandos:
-    $ bison -d compiler.y
-    $ flex compiler.l
-    $ gcc implementations/*.c *.c -lfl
+Compiling instructions
 
-Available debug compilation tags
+Execute the following command to compile the project:
+    $ make compile
+
+To compile with debug flags use the following command:
+    $ make compile FLAGS="FLAG_1 FLAG_2"
+
+Available debug compilation flags
 -D_PRINT_PARSE_TRACE
 -D_PRINT_SYMBOL_TABLES
 -D_PRINT_FUN_CALLS
 -D__PRINT_EXECUTION_TRACE
 
-Posteriormente, ejecutar pasando como parametro el archivo con el código fuente.
-    $ ./a.out tests/test.txt
+To run the program, set the path to the text file as parameter:
+    $ ./interpeter.out tests/test.txt

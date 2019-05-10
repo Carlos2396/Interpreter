@@ -15,9 +15,13 @@
 
   extern int lines; // line counter
   extern FILE* yyin; // input file
-  
+  int yylex();
+  void yyerror(const char *s);
+
   int counter = 0;
 %}
+
+%expect 1
 
 %token <stringVal> IDENTIFIER
 %token <type> INT
@@ -991,10 +995,9 @@ void execTree(TreeNode*root, HashTable* hashTable) {
   }
 }
 
-int yyerror(char const * s) {
+void yyerror(char const * s) {
   lines++;
   fprintf(stderr, RED"%s in line %d\n", s, lines);
-  return 0;
 }
 
 int main(int argc, char **argv) {

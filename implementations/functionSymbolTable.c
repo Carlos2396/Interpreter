@@ -1,5 +1,6 @@
 #include "../libs/definitions.h"
 #include "../libs/symbolTable.h"
+#include "../libs/syntaxTree.h"
 
 FunctionSymbolNode** functionsTable;
 

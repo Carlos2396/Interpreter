@@ -14,6 +14,10 @@
 #define RESET   "\x1b[0m"
 #define RED     "\x1b[31m"
 #define GREEN   "\x1b[32m"
+#define YELLOW  "\x1b[33m"
+#define BLUE    "\x1b[34m"
+#define MAG     "\x1b[35m"
+#define CYAN    "\x1b[36m"
 #define SIZE    32507
 
 /**
@@ -50,6 +54,15 @@ typedef union {
 /**
  * Structs definitions
 */
+typedef struct ArgNode ArgNode;
+typedef struct SymbolNode SymbolNode;
+typedef struct DeclNode DeclNode;
+typedef struct TreeNode TreeNode;
+typedef struct ParamNode ParamNode;
+typedef struct ArgNode ArgNode;
+typedef struct HashTable HashTable;
+typedef struct FunctionSymbolNode FunctionSymbolNode;
+
 typedef struct SymbolNode {
     char*identifier;
     Type type;
@@ -57,17 +70,17 @@ typedef struct SymbolNode {
     struct SymbolNode*next;
 } SymbolNode;
 
-typedef struct LLNode {
+typedef struct DeclNode {
     char*identifier;
-    struct LLNode*next;
-} LLNode;
+    struct DeclNode*next;
+} DeclNode;
 
 typedef struct TreeNode {
     Instruction instruction;
     Type type;
     Value val;  
     char*identifier;
-    ArgNode*argList;
+    struct ArgNode*argList;
     struct TreeNode* left;
     struct TreeNode* center;
     struct TreeNode* right;
@@ -80,22 +93,27 @@ typedef struct ParamNode {
 } ParamNode;
 
 typedef struct ArgNode {
-    TreeNode*syntaxTree;
+    struct TreeNode*syntaxTree;
     struct ArgNode*next;
 } ArgNode;
 
 typedef struct HashTable {
-    SymbolNode** table;
-    LLNode* remaining;
+    struct SymbolNode** table;
+    struct DeclNode* remaining;
 } HashTable;
 
 typedef struct FunctionSymbolNode {
     char*identifier;
     Type type;
-    TreeNode*syntaxTree;
-    HashTable*hashTable;
-    ParamNode*paramsList;
+    struct TreeNode*syntaxTree;
+    struct SymbolNode**hashTable;
+    struct ParamNode*paramsList;
     struct FunctionSymbolNode*next;
 } FunctionSymbolNode;
 
+
+/**
+ * Methods
+*/
+int hash(char*c); // makes simple hash with the identifier string
 #endif

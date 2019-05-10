@@ -1,25 +1,17 @@
+/* Carlos Augusto Amador Manilla A01329447 */
+/* Angel Roberto Ruiz Mendoza A01324489 */
+
 #include "definitions.h"
 #include "symbolTable.h"
+#include "syntaxTree.h"
 
 FunctionSymbolNode** functionsTable;
-ParamNode*paramsList;
 
 void initFunctionsTable() {
     functionsTable = (FunctionSymbolNode**) calloc(sizeof(FunctionSymbolNode*), SIZE);
-    paramsList = NULL;
 }
 
-int hash(char*c) {
-    int sum = 0;
-    while((*c) != '\0') {
-        sum += *c;
-        c++;
-    }
-
-    return sum%SIZE;
-}
-
-FunctionSymbolNode*createFunctionNode(char*id, Type type, HashTable*hashTable, TreeNode*syntaxTree, ParamNode*paramsList) {
+FunctionSymbolNode*createFunctionNode(char*id, Type type, SymbolNode**hashTable, TreeNode*syntaxTree, ParamNode*paramsList) {
     FunctionSymbolNode*node = (FunctionSymbolNode*)malloc(sizeof(FunctionSymbolNode));
     node->identifier = strdup(id);
     node->type = type;
@@ -82,11 +74,11 @@ int insertFunctionSymbol(FunctionSymbolNode*node) {
     return 1;
 }
 
-int addParamsToSymbolFunctionTable(FunctionSymbolNode*node) {
-    ParamNode*param = node->paramsList;
+int addParamsToSymbolFunctionTable(SymbolNode**hashTable, ParamNode*paramsList) {
+    ParamNode*param = paramsList;
 
     while(param != NULL) {
-        if(!insertSymbol(param->identifier, param->type, (Value)0, node->hashTable)) {
+        if(!insertSymbol(param->identifier, param->type, (Value)0, hashTable)) {
             return 0;
         }
         
@@ -94,4 +86,15 @@ int addParamsToSymbolFunctionTable(FunctionSymbolNode*node) {
     }
 
     return 1;
+}
+
+void printArgsList(ArgNode*args) {
+    int i = 1;
+    while(args != NULL) {
+        printf(YELLOW"Argument %d\n", i);
+        inOrder(args->syntaxTree);
+        args = args->next;
+        i++;
+    }
+    printf("\n"RESET);
 }

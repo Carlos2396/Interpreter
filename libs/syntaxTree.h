@@ -14,7 +14,7 @@ TreeNode*root;
 /*
  * Methods
 */
-TreeNode*createTreeNode(Instruction ins, Type y, Value v, SymbolNode* tblNode, TreeNode* l, TreeNode* c, TreeNode* r);
+TreeNode*createTreeNode(Instruction ins, Type y, Value v, char*identifier, TreeNode* l, TreeNode* c, TreeNode* r);
 void postOrder(TreeNode* tRoot);
 void inOrder(TreeNode* tRoot);
 

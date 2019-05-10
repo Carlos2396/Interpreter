@@ -3,8 +3,8 @@
 /* Definitions */
 
 %{
-    #include "compiler.tab.h"
-    #include "definitions.h"
+    #include "interpreter.tab.h"
+    #include "libs/definitions.h"
 
     int lines = 1;
 %}
@@ -48,6 +48,7 @@ real          { yylval.type = real; return REAL; }
 float         { return FLOAT; }
 boolean       { return BOOLEAN; }
 procedure     { return PROCEDURE; }
+fun           { return FUN; }
 program       { return PROGRAM; }
 return        { return RETURN; }
 {IDENTIFIERE} { yylval.stringVal = strdup(yytext); return IDENTIFIER; }
@@ -67,8 +68,8 @@ return        { return RETURN; }
 ":="            { return ASSIGNMENT; }
 
 "."             { return DOT; }
-","             { return COLON; }
-":"             { return TWODOTS; }
+","             { return COMMA; }
+":"             { return COLON; }
 ";"             { return SEMICOLON; }
 "("             { return PARENTHESIS; }
 ")"             { return CPARENTHESIS; }

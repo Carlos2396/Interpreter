@@ -1,19 +1,33 @@
 program programID
-let ptr:integer
+let int:integer;
+let dob:real
+
+fun myFuntion(a:integer, b:integer) : integer
+let c: integer
+begin
+    c := a + b;
+    print c
+end,
+
+fun myFuntion2(d:real, e:real) : integer
+let f: real
+begin
+    f := d + e;
+    print f
+end,
+
+fun myFuntion3(g:integer, h:real) : real
+let i: real;
+let j: integer
+begin
+    i := h + 1.0;
+    j := g + 1;
+    print j
+end
 
 begin
-    read ptr;
-    print ptr;
-
-    while ptr > 0 do
-    begin
-    print ptr;
-        if ptr/2 = 0 then
-            print 1
-        else
-            print 0
-        ;
-        
-        ptr := ptr - 1
-    end
+    int := 10;
+    dob := 5.0;
+    print int;
+    print dob
 end

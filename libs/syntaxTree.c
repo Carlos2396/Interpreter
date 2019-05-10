@@ -1,8 +1,8 @@
 /* Carlos Augusto Amador Manilla A01329447 */
 /* Angel Roberto Ruiz Mendoza A01324489 */
 
-#include "../libs/definitions.h"
-#include "../libs/syntaxTree.h"
+#include "definitions.h"
+#include "syntaxTree.h"
 
 /*
  * Methods

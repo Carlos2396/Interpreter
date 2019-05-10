@@ -1,6 +1,9 @@
-#include "../libs/definitions.h"
-#include "../libs/symbolTable.h"
-#include "../libs/syntaxTree.h"
+/* Carlos Augusto Amador Manilla A01329447 */
+/* Angel Roberto Ruiz Mendoza A01324489 */
+
+#include "definitions.h"
+#include "symbolTable.h"
+#include "syntaxTree.h"
 
 FunctionSymbolNode** functionsTable;
 

@@ -1,3 +1,6 @@
+/* Carlos Augusto Amador Manilla A01329447 */
+/* Angel Roberto Ruiz Mendoza A01324489 */
+
 #ifndef FSYMBOL
 #define FSYMBOL
 

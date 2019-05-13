@@ -38,17 +38,6 @@
 #define MISSING_SYMBOL_TABLE_NODE_ERROR_MESSAGE     "Missing symbol."
 
 /**
- *  Global Variables 
-*/
-TreeNode*root; // root of the main program syntax tree
-SymbolNode**globalTable; //The main symbol table with global variables, when using a variable the second thing to do is search it here
-SymbolNode**currentTable; //Local table to be used in the functions, when using a variable the first thing to do is search it here
-FunctionSymbolNode*currentFunction; //The node od the function hash table that is currently being used, this to make the declaration of parameters easier
-Value returnValue; //Value that is going to be returned in the function that is currently being executed
-extern int lines; // line counter
-extern FILE* yyin; // input file
-
-/**
  * Unions and Enums definitions
 */
 
@@ -124,6 +113,16 @@ struct FunctionSymbolNode {
     struct FunctionSymbolNode*next;
 };
 
+/**
+ *  Global Variables 
+*/
+TreeNode*root; // root of the main program syntax tree
+SymbolNode**globalTable; //The main symbol table with global variables, when using a variable the second thing to do is search it here
+SymbolNode**currentTable; //Local table to be used in the functions, when using a variable the first thing to do is search it here
+FunctionSymbolNode*currentFunction; //The node od the function hash table that is currently being used, this to make the declaration of parameters easier
+Value returnValue; //Value that is going to be returned in the function that is currently being executed
+extern int lines; // line counter
+extern FILE* yyin; // input file
 
 /**
  * Methods

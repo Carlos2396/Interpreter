@@ -368,32 +368,36 @@ expr:
     printf(BLUE"expr -> Plus: %d\n"RESET, ++counter);
     #endif
 
+    //Check the type of the right and left node, stop the program and print error if the types dont match
     if($1->type != $3->type){
       sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
       yyerror(error); 
       return 1;
     }
 
+    //Return a new node with plus, expr in the left and term in the right
     $$ = createTreeNode(IPLUS, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   expr MINUS term {
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"expr -> Minus: %d\n"RESET, ++counter);
     #endif
-
+    
+    //Check the type of the right and left node, stop the program and print error if the types dont match
     if($1->type != $3->type){
       sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
       yyerror(error); 
       return 1;
     }
 
+    //Return a new node with minus, expr in the left and term in the right
     $$ = createTreeNode(IMINUS, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   term {
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"expr -> term: %d\n"RESET, ++counter);
     #endif
-
+    //Return the term
     $$ =  $1;
   }
 ;
@@ -404,12 +408,14 @@ term:
     printf(BLUE"term -> Asterisk: %d\n"RESET, ++counter);
     #endif
 
+    //Check the type of the right and left node, stop the program and print error if the types dont match
     if($1->type != $3->type){
       sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
       yyerror(error); 
       return 1;
     }
 
+    //Return a new node with asterisk, term in the left and factor in the right
     $$ = createTreeNode(IASTERISK, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   term SLASH factor {
@@ -417,12 +423,14 @@ term:
     printf(BLUE"term -> Slash: %d\n"RESET, ++counter);
     #endif
 
+    //Check the type of the right and left node, stop the program and print error if the types dont match
     if($1->type != $3->type){
       sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
       yyerror(error); 
       return 1;
     }
 
+    //Return a new node with slash, term in the left and factor in the right
     $$ = createTreeNode(ISLASH, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   factor {
@@ -430,6 +438,7 @@ term:
     printf(BLUE"term -> factor: %d\n"RESET, ++counter);
     #endif
 
+    //return factor
     $$ = $1;
   }
 ;
@@ -440,6 +449,7 @@ factor:
     printf(BLUE"factor -> Parenthesis: %d\n"RESET, ++counter);
     #endif
 
+    //Return a node with the "(", the expr as left and ")" as right
     TreeNode* parNode = createTreeNode(ICPARENTHESIS, $2->type, (Value)0, NULL, NULL, NULL, NULL);
     $$ = createTreeNode(IPARENTHESIS, $2->type, (Value)0, NULL, $2, NULL, parNode);
   } |
@@ -448,6 +458,7 @@ factor:
     printf(BLUE"factor -> Identifier %s: %d\n"RESET, $1, ++counter);
     #endif
 
+    //Find the symbol in the tables, the current symbol has priority and return a node with the type and dentifier of the symbol
     SymbolNode*symbol = findSymbol($1, currentTable);
     SymbolNode*symbolG = findSymbol($1, globalTable);
     if(symbol == NULL && symbolG == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; }
@@ -460,6 +471,7 @@ factor:
     printf(BLUE"factor -> IntV -> %d: %d\n"RESET, $1, ++counter);
     #endif
 
+    //Return a node with the type and the value of the int
     $$ = createTreeNode(IINTNUM, integer, (Value)$1, NULL, NULL, NULL, NULL);
   } |
   FLOATV {
@@ -467,6 +479,7 @@ factor:
     printf(BLUE"factor -> FloatV -> %f: %d\n"RESET, $1, ++counter);
     #endif
 
+    //REturn a node with the type and value of the float 
     $$ = createTreeNode(IREALNUM, real, (Value)$1, NULL, NULL, NULL, NULL);
   } |
   IDENTIFIER PARENTHESIS opt_args CPARENTHESIS {
@@ -497,6 +510,7 @@ factor:
 
     if(arg != NULL) {sprintf(error, "Invalid call to %s. More arguments than required given.", function->identifier); yyerror(error); return 1; }
     
+    //Return the node
     $$ = functionNode;
   }
 ;
@@ -507,12 +521,14 @@ expression:
     printf(BLUE"expression -> Smaller: %d\n"RESET, ++counter);
     #endif
 
+    //Check if the left and right node have the same type, stop execution if not
     if($1->type != $3->type){
       sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
       yyerror(error); 
       return 1;
     }
 
+    //REturn a node with the propper instuction and the right and left expr as children
     $$ = createTreeNode(ISMALLER, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   expr BIGGER expr {
@@ -520,12 +536,14 @@ expression:
     printf(BLUE"expression -> Bigger: %d\n"RESET, ++counter);
     #endif
 
+    //Check if the left and right node have the same type, stop execution if not
     if($1->type != $3->type){
       sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
       yyerror(error); 
       return 1;
     }
 
+    //REturn a node with the propper instuction and the right and left expr as children
     $$ = createTreeNode(IBIGGER, $1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   expr EQUAL expr {
@@ -533,12 +551,14 @@ expression:
     printf(BLUE"expression -> Equal: %d\n"RESET, ++counter);
     #endif
 
+    //Check if the left and right node have the same type, stop execution if not
     if($1->type != $3->type){
       sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
       yyerror(error); 
       return 1;
     }
 
+    //REturn a node with the propper instuction and the right and left expr as children
     $$ = createTreeNode(IEQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
   } |
   expr SMALLEROREQUAL expr {
@@ -546,12 +566,14 @@ expression:
     printf(BLUE"expression -> Smaller or equal: %d\n"RESET, ++counter);
     #endif
 
+    //Check if the left and right node have the same type, stop execution if not
     if($1->type != $3->type){
       sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
       yyerror(error); 
       return 1;
     }
 
+    //REturn a node with the propper instuction and the right and left expr as children
     $$ = createTreeNode(ISMALLEROREQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
   } | 
   expr BIGGEROREQUAL expr {
@@ -559,12 +581,14 @@ expression:
     printf(BLUE"expression -> Bigger or equal: %d\n"RESET, ++counter);
     #endif
 
+    //Check if the left and right node have the same type, stop execution if not
     if($1->type != $3->type){
       sprintf(error, "Type mismatch, type %d is not type %d", $1->type, $3->type); 
       yyerror(error);
       return 1;
     }
 
+    //REturn a node with the propper instuction and the right and left expr as children
     $$ = createTreeNode(IBIGGEROREQUAL,$1->type, (Value)0, NULL, $1, NULL, $3);
   }
 ;
@@ -574,13 +598,14 @@ opt_args:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"opt_args -> args_lst: %d\n"RESET, ++counter);
     #endif
+    //Return the arg list
     $$ = $1;
   } |
    {
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"opt_args -> Nothing: %d\n"RESET, ++counter);
     #endif
-    
+    //Do nothng as its empty
     $$ =  NULL;
   } 
 ;
@@ -590,7 +615,7 @@ arg_lst:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"args_lst -> expr, arg_lst: %d\n"RESET, ++counter);
     #endif
-
+    //Create node with the left expresion and append the right arg list to it
     $$ = createArgNode($1, $3);
   } | 
   expr {
@@ -598,24 +623,27 @@ arg_lst:
     printf(BLUE"args_lst -> expr: %d\n"RESET, ++counter);
     #endif
 
+    //Create a node with the left expresion and append null to it 
     $$ = createArgNode($1, NULL);
   }
 ;
 
 %%
 
-
+//Method that prints the type of error and the line
 void yyerror(char const * s) {
   lines++;
   printf(RED"%s in line %d\n"RESET, s, lines);
 }
 
 int main(int argc, char **argv) {
+  //If there are no args send an error
   if(argc != 2) {
         fprintf(stderr, RED"The name of the file to analize must be a parameter.\n");
         return 1;
     }
 
+    //Check if you can open the file if not end and tell the user
     char* filename = argv[1];
     yyin = fopen(filename, "r");
     
@@ -626,6 +654,7 @@ int main(int argc, char **argv) {
 
     error = (char*)malloc(sizeof(char)*1000);
 
+    //Initialize global variables
     initFunctionsTable();
     globalTable = initSymbolTable();
     currentTable = globalTable;
@@ -645,6 +674,7 @@ int main(int argc, char **argv) {
         printf("\n" RESET);
       #endif
 
+      //Execute tree
       printf(RESET"Execution output:\n");
       execTree(root, NULL);
     }

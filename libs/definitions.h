@@ -62,7 +62,6 @@ typedef struct ParamNode ParamNode;
 typedef struct ArgNode ArgNode;
 typedef struct HashTable HashTable;
 typedef struct FunctionSymbolNode FunctionSymbolNode;
-typedef struct FunctionCallNode FunctionCallNode;
 typedef struct FunctionStackNode FunctionStackNode;
 typedef struct FunctionStack FunctionStack; 
 
@@ -118,11 +117,6 @@ struct FunctionStackNode {
     char* identifier;
     Value returnVal;
     struct FunctionStackNode* next;
-};
-
-struct FunctionCallNode {
-    struct TreeNode*treeNode;
-    FunctionCallNode*next;
 };
 
 struct FunctionStack {

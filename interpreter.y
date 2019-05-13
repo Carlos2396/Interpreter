@@ -12,9 +12,7 @@
 
   SymbolNode**globalTable;
   SymbolNode**currentTable;
-  FunctionCallNode*functionCalls;
-  Type functionType;
-  int declsFlag = 0;
+  FunctionSymbolNode*currentFunction;
 
   extern int lines; // line counter
   extern FILE* yyin; // input file
@@ -77,14 +75,10 @@ opt_decls:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"opt_decls -> decl_lst: %d\n"RESET, ++counter);
     #endif
-
-    declsFlag = 0;
   } | {
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"opt_decls -> NOTHING: %d\n"RESET, ++counter);
     #endif
-
-    declsFlag = 0;
   }
 ;
 
@@ -107,8 +101,7 @@ decl:
     printf(BLUE"decl -> id_lst : type: %d\n"RESET, ++counter);
     #endif
 
-    DeclNode*declList = $2;
-    DeclNode*declNode = insertDeclList(declList, $4, currentTable);
+    DeclNode*declNode = insertDeclList($2, $4, currentTable);
     if(declNode != NULL) {sprintf(error, "Symbol %s already declared", declNode->identifier); yyerror(error); return 1;}
   }
 ;
@@ -126,8 +119,6 @@ id_lst:
     printf(BLUE"id_lst -> Identifier: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
     #endif
 
-    declsFlag = 1;
-
     $$ = createDeclNode($1, NULL); 
   }
 ;
@@ -137,15 +128,11 @@ type:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"type -> Int: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
     #endif
-
-    if(!declsFlag) functionType = integer;
   } | 
   REAL { 
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"type -> Real: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
     #endif 
-
-    if(!declsFlag) functionType = real;
   }
 ;
 
@@ -175,51 +162,33 @@ fun_lst:
 ;
 
 fun_decl:
-  FUN IDENTIFIER PARENTHESIS opt_params CPARENTHESIS COLON type opt_decls BEGINS opt_stmts END {
+  FUN IDENTIFIER PARENTHESIS opt_params CPARENTHESIS COLON type {
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"fun_decl -> fun id (opt_params) : type opt_decls begin opt_stmts end : %d\n"RESET, ++counter);
     #endif
 
-    FunctionSymbolNode*function = findFunction($2);
-    if(function != NULL) {sprintf(error, "Function %s already declared", $2); yyerror(error); return 1; }
+    currentTable = initSymbolTable();
 
     ParamNode*paramsList = $4;
-    TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
-    TreeNode*syntaxTree = createTreeNode(IBEGIN, null, (Value)0, NULL, $10, NULL, endNode);
+    ParamNode*param = insertParamList(paramsList, currentTable);
+    if(param != NULL) { sprintf(error, "Parameter %s alredy declared.", param->identifier); yyerror(error); return 1; }
 
-    function = createFunctionNode($2, $7, currentTable, syntaxTree, paramsList);
+    // If no function exists with the same name, insert it into functions table
+    currentFunction = findFunction($2);
+    if(currentFunction != NULL) {sprintf(error, "Function %s is already declared", $2); yyerror(error); return 1; }
+    currentFunction = createFunctionNode($2, $7, currentTable, NULL, paramsList);
+    
+    insertFunctionSymbol(currentFunction);
 
+  } opt_decls BEGINS opt_stmts END {
     #ifdef _PRINT_SYMBOL_TABLES
     printf(CYAN"\nFunction %s "RESET, function->identifier);
     printSymbolTable(function->hashTable); 
     #endif
 
-    insertFunctionSymbol(function);
-
-    FunctionSymbolNode*calledFunction;
-    while(functionCalls != NULL) {
-      printf("Call to function %s\n", functionCalls->treeNode->identifier);
-      function = findFunction(functionCalls->treeNode->identifier);
-      if(function == NULL) {sprintf(error, "Function %s is not declared.", functionCalls->treeNode->identifier); yyerror(error); return 1; }
-
-      ArgNode*args = functionCalls->treeNode->argList;
-      ArgNode*arg = args;
-      ParamNode*param = function->paramsList;
-
-      // Check that the number and type of arguments matches the parameters required
-      int count = 1;
-      while(param != NULL) {
-        if(arg == NULL) {sprintf(error, "Invalid call to %s. Missing arguments.", function->identifier); yyerror(error); return 1; }
-        if(param->type != arg->syntaxTree->type) {sprintf(error, "Invalid call to %s. Type mismatch in argument %d.", function->identifier, count); yyerror(error); return 1; }
-      
-        param = param->next;
-        arg = arg->next;
-        count++;
-      }
-      if(arg != NULL) {sprintf(error, "Invalid call to %s. More arguments than required given.", function->identifier); yyerror(error); return 1; }
-
-      functionCalls = functionCalls->next;
-    }
+    TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
+    TreeNode*syntaxTree = createTreeNode(IBEGIN, null, (Value)0, NULL, $11, NULL, endNode);
+    currentFunction->syntaxTree = syntaxTree;
 
     currentTable = globalTable;
   }
@@ -236,8 +205,6 @@ opt_params:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"opt_params -> Nothing: %d\n"RESET, ++counter);
     #endif
-
-    if(currentTable == globalTable) currentTable = initSymbolTable();
 
     $$ = NULL;
   }
@@ -267,15 +234,8 @@ param:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"param -> deintifier: type : %d\n"RESET, ++counter);
     #endif
-    
-    if(currentTable == globalTable) currentTable = initSymbolTable();
 
-    ParamNode*param = createParamNode($1, $3, NULL);
-    if(!insertSymbol(param->identifier, param->type, (Value)0, currentTable)) {
-      sprintf(error, "Parameters and variables of functions cannot have the same identifier."); yyerror(error); return 1;
-    }
-
-    $$ = param;
+    $$ = createParamNode($1, $3, NULL);;
   }
 ;
 
@@ -505,16 +465,29 @@ factor:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"factor -> id(opt_args): %d\n"RESET, ++counter);
     #endif
+
+    FunctionSymbolNode*function = findFunction($1);
+    if(function == NULL) {sprintf(error, "Function %s is not declared.", $1); yyerror(error); return 1; }
     
-    TreeNode*functionNode = createTreeNode(IFUNCTION, functionType, (Value)0, $1, NULL, NULL, NULL);
-    functionNode->argList = $3;
+    // Create function syntax tree node
+    ArgNode*argsList = $3;
+    TreeNode*functionNode = createTreeNode(IFUNCTION, function->type, (Value)0, $1, NULL, NULL, NULL);
+    functionNode->argList = argsList;
 
-    functionCalls = addFunctionCall(functionCalls, createFunctionCallNode(functionNode, NULL));
+    // Check that the number and type of arguments matches the parameters required
+    ArgNode*arg = argsList;
+    ParamNode*param = function->paramsList;
+    int count = 1;
+    while(param != NULL) {
+      if(arg == NULL) {sprintf(error, "Invalid call to %s. Missing arguments.", function->identifier); yyerror(error); return 1; }
+      if(param->type != arg->syntaxTree->type) {sprintf(error, "Invalid call to %s. Type mismatch in argument %d.", function->identifier, count); yyerror(error); return 1; }
+      
+      param = param->next;
+      arg = arg->next;
+      count++;
+    }
 
-    #ifdef _PRINT_FUN_CALLS
-    printf(YELLOW"\nCall to function %s\n"RESET, function->identifier);
-    printArgsList(args);
-    #endif
+    if(arg != NULL) {sprintf(error, "Invalid call to %s. More arguments than required given.", function->identifier); yyerror(error); return 1; }
     
     $$ = functionNode;
   }

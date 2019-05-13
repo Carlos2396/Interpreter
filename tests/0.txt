@@ -2,15 +2,14 @@ program programID
 let int:integer;
 let dob:real
 
-fun fact(x:integer) : integer
+fun fact(x: integer) : integer
 begin
-    print x;
-    if x = 0 then
+    if int = 0 then
         return 1
     else
-        return x * fact(-1 + x)
+        return fact(-1+x)
 end
 
 begin
-    print fact(5)
+    return fact(5)
 end

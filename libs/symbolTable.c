@@ -135,3 +135,16 @@ void printSymbolTable(SymbolNode** hashTable) {
     }
     printf("\n"RESET);
 }
+
+ParamNode*insertParamList(ParamNode*paramsList, SymbolNode** hashTable) {
+    ParamNode*param = paramsList;
+    while(param != NULL) {
+        if(!insertSymbol(param->identifier, param->type, (Value)0, hashTable)) {
+            return param;
+        }
+
+        param = param->next;
+    }
+
+    return NULL;
+}

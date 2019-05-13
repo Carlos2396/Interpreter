@@ -19,4 +19,6 @@ void printSymbolTable(SymbolNode** hashTable); // prints the symbol table
 
 DeclNode*createDeclNode(char*id, DeclNode*next); // appends id to remaining list
 DeclNode*insertDeclList(DeclNode*declList, Type type, SymbolNode** hashTable); // insert all ids in remaining list with the specified type
+ParamNode*insertParamList(ParamNode*paramsList, SymbolNode** hashTable); // Insert a list of parameters into the symbol table
 #endif
+

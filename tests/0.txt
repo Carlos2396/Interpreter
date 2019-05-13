@@ -4,7 +4,6 @@ let dob:real
 
 fun fact(x:integer) : integer
 begin
-    print x;
     if x = 0 then
         return 1
     else

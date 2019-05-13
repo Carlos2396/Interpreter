@@ -9,38 +9,33 @@
   #include "libs/executioner.h"
 
   char*error; // to store error messages
-
-  SymbolNode**globalTable;
-  SymbolNode**currentTable;
-  FunctionSymbolNode*currentFunction;
-
   extern int lines; // line counter
   extern FILE* yyin; // input file
-  extern char yytext[];
+  extern char yytext[]; // text of last identified token
 
   int yylex();
   void yyerror(const char *s);
 
-  int counter = 0;
+  int counter = 0; // for debugging
 %}
 
-%expect 1
+%expect 1 
 
-%token <stringVal> IDENTIFIER
-%token <type> INT
-%token <type> REAL
-%token <intVal> INTV
-%token <floatVal> FLOATV
-%type <type> type
-%type <nodePointer> stmt expr expression term factor stmt_lst opt_stmts fun_lst
-%type <argNode> opt_args arg_lst
-%type <paramNode> opt_params param_lst param
-%type <declNode> decl id_lst
-%token 
-    BEGINS END IF ELSE WHILE DO FOR FOREACH THEN PRINT READ FUN
-    VAR LET BOOLEAN FLOAT PROCEDURE PROGRAM
-    PLUS MINUS SLASH ASTERISK BIGGER BIGGEROREQUAL SMALLER SMALLEROREQUAL EQUAL ASSIGNMENT
-    DOT COMMA COLON SEMICOLON PARENTHESIS CPARENTHESIS BRACKET CBRACKET RETURN
+%token <stringVal> IDENTIFIER // return string value
+%token <type> INT REAL // return Type value
+%token <intVal> INTV // return int value
+%token <floatVal> FLOATV // return int value
+%token // list of used tokens
+  BEGINS END IF ELSE WHILE DO THEN PRINT READ FUN
+  VAR LET FLOAT PROCEDURE PROGRAM
+  PLUS MINUS SLASH ASTERISK BIGGER BIGGEROREQUAL SMALLER SMALLEROREQUAL EQUAL ASSIGNMENT
+  DOT COMMA COLON SEMICOLON PARENTHESIS CPARENTHESIS RETURN
+
+%type <type> type // return Type value
+%type <treeNode> stmt expr expression term factor stmt_lst opt_stmts fun_lst // return TreeNode pointers
+%type <argNode> opt_args arg_lst // return ArgNode pointer
+%type <paramNode> opt_params param_lst param // return ParamNode pointer
+%type <declNode> decl id_lst // return DeclNode pointer
 
 %start prog
 
@@ -48,13 +43,13 @@
   #include "libs/syntaxTree.h"
 }
 
-// possible values
+// List of return types
 %union {
   int intVal;
   float floatVal;
   char*stringVal;
   Type type;
-  TreeNode*nodePointer;
+  TreeNode*treeNode;
   ArgNode*argNode;
   ParamNode*paramNode;
   DeclNode*declNode;
@@ -66,9 +61,11 @@ prog: PROGRAM IDENTIFIER opt_decls opt_fun_decls BEGINS opt_stmts END {
   printf(BLUE"Program: %d\n"RESET, ++counter);
   #endif
 
+  // Set main program syntax tree
   TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL); 
   root = createTreeNode(IBEGIN, null, (Value)0, NULL, $6, NULL, endNode);
 
+  // Valid syntax
   YYACCEPT; 
 };
 
@@ -103,6 +100,7 @@ decl:
     printf(BLUE"decl -> id_lst : type: %d\n"RESET, ++counter);
     #endif
 
+    // Insert list of identifiers with given type in the current symbol table
     DeclNode*declNode = insertDeclList($2, $4, currentTable);
     if(declNode != NULL) {sprintf(error, "Symbol %s already declared", declNode->identifier); yyerror(error); return 1;}
   }
@@ -114,26 +112,26 @@ id_lst:
     printf(BLUE"id_lst -> Identifier , id_lst: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
     #endif
     
-    $$ = createDeclNode($1, $3);
+    $$ = createDeclNode($1, $3); // creation of DeclNode linked list
   } |
   IDENTIFIER { 
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"id_lst -> Identifier: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
     #endif
 
-    $$ = createDeclNode($1, NULL); 
+    $$ = createDeclNode($1, NULL); // creation of DeclNode linked list
   }
 ;
 
 type: 
   INT { 
     #ifdef _PRINT_PARSE_TRACE
-    printf(BLUE"type -> Int: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
+    printf(BLUE"type -> Int: %d\n", ++counter);
     #endif
   } | 
   REAL { 
     #ifdef _PRINT_PARSE_TRACE
-    printf(BLUE"type -> Real: %d  table %s\n", ++counter, currentTable == globalTable? "global": "function");
+    printf(BLUE"type -> Real: %d\n", ++counter);
     #endif 
   }
 ;
@@ -165,33 +163,42 @@ fun_lst:
 
 fun_decl:
   FUN IDENTIFIER PARENTHESIS opt_params CPARENTHESIS COLON type {
+    // First part of fuction declaration
+    // Inserts the delcared function in functions table with its declared type and list of parameters
+    
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"fun_decl -> fun id (opt_params) : type opt_decls begin opt_stmts end : %d\n"RESET, ++counter);
     #endif
 
+    // set currentTable to a new symbol table
     currentTable = initSymbolTable();
 
+    // Get the parameters list and inserts them, throws an error if an identifier is repeated
     ParamNode*paramsList = $4;
     ParamNode*param = insertParamList(paramsList, currentTable);
     if(param != NULL) { sprintf(error, "Parameter %s alredy declared.", param->identifier); yyerror(error); return 1; }
 
-    // If no function exists with the same name, insert it into functions table
+    // Throws an error if a functions with same identifier is already declared
     currentFunction = findFunction($2);
     if(currentFunction != NULL) {sprintf(error, "Function %s is already declared", $2); yyerror(error); return 1; }
     currentFunction = createFunctionNode($2, $7, currentTable, NULL, paramsList);
     
-    insertFunctionSymbol(currentFunction);
-
+    insertFunctionSymbol(currentFunction); // inserts the function in the functions table
   } opt_decls BEGINS opt_stmts END {
+    // Second part of fuction declaration
+    // Inserts the declared variables in the current symbol table, parses function syntax tree
+
     #ifdef _PRINT_SYMBOL_TABLES
     printf(CYAN"\nFunction %s "RESET, function->identifier);
     printSymbolTable(function->hashTable); 
     #endif
 
+    // Set the function syntax tree
     TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
     TreeNode*syntaxTree = createTreeNode(IBEGIN, null, (Value)0, NULL, $11, NULL, endNode);
     currentFunction->syntaxTree = syntaxTree;
 
+    // Sets current symbol table to global symbol table
     currentTable = globalTable;
 
     #ifdef _PRINT_SYNTAX_TREES
@@ -208,7 +215,7 @@ opt_params:
     printf(BLUE"param_lst -> param_lst: %d\n"RESET, ++counter);
     #endif
 
-    $$ = $1;
+    $$ = $1; // Pass the params list
   } | {
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"opt_params -> Nothing: %d\n"RESET, ++counter);
@@ -226,14 +233,14 @@ param_lst:
 
     ParamNode*paramNode = $1;
     paramNode->next = $3;
-    $$ = paramNode;
+    $$ = paramNode;// creation of ParamNode linked list
   } | 
   param {
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"param_lst -> param: %d\n"RESET, ++counter);
     #endif
 
-    $$ = $1;
+    $$ = $1; // creation of ParamNode linked list
   }
 ;
 
@@ -243,7 +250,7 @@ param:
     printf(BLUE"param -> deintifier: type : %d\n"RESET, ++counter);
     #endif
 
-    $$ = createParamNode($1, $3, NULL);;
+    $$ = createParamNode($1, $3, NULL); // create a ParamNode struct
   }
 ;
 
@@ -253,17 +260,20 @@ stmt:
     printf(BLUE"stmt -> Assignment: %d\n"RESET, ++counter);
     #endif
 
+    // Search the identifier in global and local symbol table, local has priority
     SymbolNode*symbol = findSymbol($1, currentTable);
     SymbolNode*symbolG = findSymbol($1, globalTable);
     if(symbol == NULL && symbolG == NULL) { sprintf(error, "Symbol %s not found", $1); yyerror(error); return 1; }
     symbol = symbol == NULL? symbolG: symbol;
-
+    
+    // checks nodes type and sets it to parent, error is thrown if mismatch found
     if(symbol->type != $3->type) {
       sprintf(error, RED"Type mismatch, type %d is not type %d"RESET, symbol->type, $3->type); 
       yyerror(error); 
       return 1;
     }
     
+    // creeates identifier and assignment TreeNodes    
     TreeNode*idNode = createTreeNode(IIDENTIFIER, null, (Value)0, symbol->identifier, NULL, NULL, NULL);
     $$ = createTreeNode(IASSIGNMENT, null, (Value)0, NULL, idNode, NULL, $3); 
   } |
@@ -272,6 +282,7 @@ stmt:
     printf(BLUE"stmt -> If Then: %d\n"RESET, ++counter);
     #endif
 
+    // creates if TreeNode with expression and then body
     TreeNode*thenNode = createTreeNode(ITHEN, null, (Value)0, NULL, $4, NULL, NULL);
     $$ = createTreeNode(IIF, null, (Value)0, NULL, $2, NULL, thenNode); 
   } |
@@ -280,6 +291,7 @@ stmt:
     printf(BLUE"stmt -> If Then Else: %d\n"RESET, ++counter);
     #endif
 
+    // creates if TreeNode with expression, then body and else body
     TreeNode*thenNode = createTreeNode(ITHEN, null, (Value)0, NULL, $4, NULL, NULL);
     TreeNode*elseNode = createTreeNode(IELSE, null, (Value)0, NULL, $6, NULL, NULL); 
     $$ = createTreeNode(IIF, null, (Value)0, NULL, $2, thenNode, elseNode);
@@ -289,6 +301,7 @@ stmt:
     printf(BLUE"stmt -> While Do: %d\n"RESET, ++counter);
     #endif
 
+    // creates while node with expression and body
     TreeNode* doNode = createTreeNode(IDO, null, (Value)0, NULL, $4, NULL, NULL);
     $$ = createTreeNode(IWHILE, null, (Value)0, NULL, $2, NULL, doNode);
   } |
@@ -297,11 +310,13 @@ stmt:
     printf(BLUE"stmt -> Read: %d\n"RESET, ++counter);
     #endif
 
+    // Search the identifier in global and local symbol table, local has priority
     SymbolNode*symbol = findSymbol($2, currentTable);
     SymbolNode*symbolG = findSymbol($2, currentTable);
     if(symbol == NULL && symbolG == NULL) { sprintf(error, "Symbol %s not found", $2); yyerror(error); return 1; }
     symbol = symbol == NULL? symbolG: symbol;
     
+    // creates read node with identifier node
     TreeNode*idNode = createTreeNode(IIDENTIFIER, symbol->type, (Value)0, symbol->identifier, NULL, NULL, NULL);
     $$ = createTreeNode(IREAD, null, (Value)0, NULL, idNode, NULL, NULL);
   } |
@@ -309,7 +324,8 @@ stmt:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"stmt -> Print: %d\n"RESET, ++counter);
     #endif
-
+    
+    // creates print node with expr
     $$ = createTreeNode(IPRINT, null, (Value)0, NULL, $2, NULL, NULL);
   } |
   BEGINS opt_stmts END {
@@ -317,6 +333,7 @@ stmt:
     printf(BLUE"stmt -> Begin End: %d\n"RESET, ++counter);
     #endif
 
+    // Creates begin node with syntax tree
     TreeNode*endNode = createTreeNode(IEND, null, (Value)0, NULL, NULL, NULL, NULL);
     $$ = createTreeNode(IBEGIN, null, (Value)0, NULL, $2, NULL, endNode);
   } |
@@ -324,6 +341,8 @@ stmt:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"stmt -> Return: %d\n"RESET, ++counter);
     #endif
+
+    // creates return TreeNode
     $$ = createTreeNode(IRETURN, null, (Value)0, NULL, $2, NULL, NULL);
   }
 ;
@@ -334,7 +353,7 @@ opt_stmts:
     printf(BLUE"opt_stmts -> stmt_lst: %d\n"RESET, ++counter);
     #endif
 
-    $$ = $1; 
+    $$ = $1; // pass semicolon node
   }
   | { 
     #ifdef _PRINT_PARSE_TRACE
@@ -350,7 +369,8 @@ stmt_lst:
     #ifdef _PRINT_PARSE_TRACE
     printf(BLUE"stmt_lst -> stmt ; stmt_lst: %d\n"RESET, ++counter);
     #endif
-
+    
+    // creates semicolon TreeNode
     $$ = createTreeNode(ISEMICOLON, null, (Value)0, NULL, $1, NULL, $3); 
   } | 
   stmt {
@@ -358,6 +378,7 @@ stmt_lst:
     printf(BLUE"stmt_lst -> stmt: %d\n"RESET, ++counter);
     #endif 
 
+    // pass stmt TreeNode
     $$ = $1; 
   }
 ;

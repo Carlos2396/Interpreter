@@ -1,0 +1,31 @@
+program fun2
+  let x, y : integer
+
+fun uno (x : integer) : integer
+let y, z: integer
+begin
+   if x < 0 then return x;
+   y := 0;
+   z := 0;
+   while y < x do
+   begin
+      z := z + x;
+      y := y + 1
+   end;
+   return z
+end,
+
+fun dos(x : integer) : integer
+let y : integer
+begin
+   y := uno(x);
+   y := x + y;
+   return y
+end
+
+begin
+   read x;
+   y := dos(x);
+   print x;
+   print y
+end

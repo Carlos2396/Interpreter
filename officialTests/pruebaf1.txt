@@ -1,0 +1,19 @@
+program fun1
+  let x, y : integer;
+  let z : real
+
+fun uno(x : integer, y : real) : real
+  let z : integer
+begin
+   z := x;
+   while y < x do
+      x := x + 1;
+   print x;
+   return y
+end
+
+begin
+   x := x;
+   z := uno(2,3);
+   print x
+end

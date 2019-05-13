@@ -1,0 +1,8 @@
+program tres
+  let x, y, z: integer
+begin
+  read x;
+  read y;
+  z := y + y;
+  print z
+end

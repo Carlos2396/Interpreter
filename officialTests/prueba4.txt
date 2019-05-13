@@ -1,0 +1,11 @@
+program cuatro
+  let x, y, z: real
+begin
+  read x;
+  read y;
+  if x <= y then
+     z := (y+x)*2.0
+  else
+     z := (x - y) * 2.0;
+  print z
+end

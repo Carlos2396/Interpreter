@@ -1,0 +1,7 @@
+program dos
+ let x : integer
+begin
+  x := 3;
+  x := x * 2;
+  print x
+end

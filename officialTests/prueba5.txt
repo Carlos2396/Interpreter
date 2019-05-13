@@ -1,0 +1,9 @@
+program cinco
+let x, y : integer
+begin
+  read x;
+  read y;
+
+  z := x * y;
+  print z
+end

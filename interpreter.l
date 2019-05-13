@@ -35,19 +35,13 @@ if            { return IF; }
 else          { return ELSE; }
 while         { return WHILE; }
 do            { return DO; }
-for           { return FOR; }
-foreach       { return FOREACH; }
 then          { return THEN; }
 print         { return PRINT; }
 read          { return READ; }
 
-var           { return VAR; }
 let           { return LET; }
 integer       { yylval.type = integer; return INT; }
 real          { yylval.type = real; return REAL; }
-float         { return FLOAT; }
-boolean       { return BOOLEAN; }
-procedure     { return PROCEDURE; }
 fun           { return FUN; }
 program       { return PROGRAM; }
 return        { return RETURN; }
@@ -73,8 +67,6 @@ return        { return RETURN; }
 ";"             { return SEMICOLON; }
 "("             { return PARENTHESIS; }
 ")"             { return CPARENTHESIS; }
-"["             { return BRACKET; }
-"]"             { return CBRACKET; }
 
 .              { }
 %%

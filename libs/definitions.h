@@ -38,6 +38,17 @@
 #define MISSING_SYMBOL_TABLE_NODE_ERROR_MESSAGE     "Missing symbol."
 
 /**
+ *  Global Variables 
+*/
+TreeNode*root; // root of the main program syntax tree
+SymbolNode**globalTable;
+SymbolNode**currentTable;
+FunctionSymbolNode*currentFunction;
+Value returnValue;
+extern int lines; // line counter
+extern FILE* yyin; // input file
+
+/**
  * Unions and Enums definitions
 */
 
@@ -129,16 +140,5 @@ struct FunctionStack {
  * Methods
 */
 int hash(char*c); // makes simple hash with the identifier string
-
-
-/**
- *  Global Variables 
-*/
-SymbolNode**globalTable;
-SymbolNode**currentTable;
-FunctionSymbolNode*currentFunction;
-Value returnValue;
-extern int lines; // line counter
-extern FILE* yyin; // input file
 
 #endif

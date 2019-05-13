@@ -62,6 +62,7 @@ void printFunction(TreeNode*printNode, SymbolNode** hashTable) {
       break;
     }
     default:
+      printf(RED"Runtime error (printFucntion).\n");
       exit(1);
       break;
   }
@@ -83,10 +84,8 @@ int evalFactorInt(TreeNode* factorNode, SymbolNode** hashTable){
       return factorNode->val.intV;
       break;
     case IREALNUM:
-      #ifdef _PRINT_EXECUTION_TRACE
-        printf("Something went wrong evalFactorInt had a real");
+        printf(RED"Runtime error (evalFactorInt).\n");
         exit(1);
-      #endif
       break;
     case IFUNCTION:{ 
       execFunctionFunction(factorNode, hashTable);
@@ -94,6 +93,7 @@ int evalFactorInt(TreeNode* factorNode, SymbolNode** hashTable){
       break;
     }
     default:
+      printf(RED"Runtime error (evalFactorInt).\n");
       exit(1);
       break;
   }
@@ -153,10 +153,8 @@ float evalFactorFloat(TreeNode* factorNode, SymbolNode** hashTable){
       return symbol->val.realV;
       break;
     case IINTNUM:
-    #ifdef _PRINT_EXECUTION_TRACE
-      printf("Something went wrong evalFactorInt had a real");
+      printf(RED"Runtime error (evalFactorFloat).\n");
       exit(1);
-      #endif
       break;
     case IREALNUM:
       return factorNode->val.realV;
@@ -167,6 +165,7 @@ float evalFactorFloat(TreeNode* factorNode, SymbolNode** hashTable){
       break;
     }
     default:
+      printf(RED"Runtime error (evalFactorFloat).\n");
       exit(1);
       break;
   }
@@ -231,6 +230,7 @@ int evalExpression(TreeNode* expressionNode, SymbolNode** hashTable){
       case ISMALLEROREQUAL:
         return leftExpr <= rightExpr? 1:0;
       default:
+        printf(RED"Runtime error (evalExpression integer).\n");
         exit(1);
         break;
     }
@@ -257,7 +257,12 @@ int evalExpression(TreeNode* expressionNode, SymbolNode** hashTable){
         else
           return 0;
         break;
+      case IBIGGEROREQUAL:
+        return leftExpr >= rightExpr? 1:0;
+      case ISMALLEROREQUAL:
+        return leftExpr <= rightExpr? 1:0;
       default:
+        printf(RED"Runtime error (evalExpression real).\n");
         exit(1);
         break;
     }
@@ -322,6 +327,7 @@ void assignFunction(TreeNode* assignNode, SymbolNode** hashTable){
       break;
     }
     default:
+      printf(RED"Runtime error (assignFunction).\n");
       exit(1);
       break;
   }
@@ -404,5 +410,7 @@ void execTree(TreeNode*root, SymbolNode** hashTable) {
         returnValue = (Value)x;
       }
       break;
+    default:
+      printf(RED"Runtime error.\n");
   }
 }

@@ -16,6 +16,8 @@
 
   extern int lines; // line counter
   extern FILE* yyin; // input file
+  extern char yytext[];
+
   int yylex();
   void yyerror(const char *s);
 
@@ -191,6 +193,12 @@ fun_decl:
     currentFunction->syntaxTree = syntaxTree;
 
     currentTable = globalTable;
+
+    #ifdef _PRINT_SYNTAX_TREES
+      printf(YELLOW"Function %s syntax tree:\n", currentFunction->identifier);
+      postOrder(currentFunction->syntaxTree);
+      printf("\n" RESET);
+    #endif
   }
 ;
 
@@ -599,7 +607,7 @@ arg_lst:
 
 void yyerror(char const * s) {
   lines++;
-  fprintf(stderr, RED"%s in line %d\n"RESET, s, lines);
+  printf(RED"%s in line %d\n"RESET, s, lines);
 }
 
 int main(int argc, char **argv) {
@@ -630,6 +638,12 @@ int main(int argc, char **argv) {
 
     if(!res) {
       printf(GREEN"Successfully compiled.\n\n");
+
+      #ifdef _PRINT_SYNTAX_TREES
+        printf(YELLOW"Function main syntax tree:\n");
+        postOrder(root);
+        printf("\n" RESET);
+      #endif
 
       printf(RESET"Execution output:\n");
       execTree(root, NULL);

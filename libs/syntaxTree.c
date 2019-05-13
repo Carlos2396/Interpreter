@@ -101,6 +101,12 @@ char*getInstructionText(TreeNode*tRoot) {
         case IEQUAL:
             text = "=";
             break;
+        case ISMALLEROREQUAL:
+            text = "<=";
+            break;
+        case IBIGGEROREQUAL:
+            text = ">=";
+            break;
         case IASSIGNMENT:
             text = "Assignment";
             break;

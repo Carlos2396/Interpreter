@@ -4,7 +4,7 @@ program fun3
 fun uno (x : integer, y : integer) : integer
 let ac, z, w : integer
 begin
-   if x < 0 then z := x * (0-1)
+   if x < 0 then z := x * (0 - 1)
    else z := x;
    ac := 0;
    w := 0;
@@ -13,7 +13,7 @@ begin
       ac := z + y;
       w := w + 1
    end;
-   if x < 0 then ac := ac * (0-1);
+   if x < 0 then ac := ac * (0 - 1);
    return ac
 end,
 

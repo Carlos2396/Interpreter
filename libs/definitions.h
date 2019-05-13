@@ -129,4 +129,16 @@ struct FunctionStack {
  * Methods
 */
 int hash(char*c); // makes simple hash with the identifier string
+
+
+/**
+ *  Global Variables 
+*/
+SymbolNode**globalTable;
+SymbolNode**currentTable;
+FunctionSymbolNode*currentFunction;
+Value returnValue;
+extern int lines; // line counter
+extern FILE* yyin; // input file
+
 #endif

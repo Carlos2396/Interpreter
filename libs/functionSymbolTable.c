@@ -73,28 +73,3 @@ int insertFunctionSymbol(FunctionSymbolNode*node) {
 
     return 1;
 }
-
-int addParamsToSymbolFunctionTable(SymbolNode**hashTable, ParamNode*paramsList) {
-    ParamNode*param = paramsList;
-
-    while(param != NULL) {
-        if(!insertSymbol(param->identifier, param->type, (Value)0, hashTable)) {
-            return 0;
-        }
-        
-        param = param->next;
-    }
-
-    return 1;
-}
-
-void printArgsList(ArgNode*args) {
-    int i = 1;
-    while(args != NULL) {
-        printf(YELLOW"Argument %d\n", i);
-        inOrder(args->syntaxTree);
-        args = args->next;
-        i++;
-    }
-    printf("\n"RESET);
-}

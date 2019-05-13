@@ -21,7 +21,7 @@ VARSE        [_|$]
 WHITESPACEE  [ \t\r]+
 LINEBREAK    [\n]+
 
-INTE         [-+]?({DIGITNZE}{DIGITE}*|0)
+INTE         ({DIGITNZE}{DIGITE}*|0)
 FLOATE       {INTE}[.]{DIGITE}+
 IDENTIFIERE  ({ALPHAE}|{VARSE})+({ALPHAE}|{VARSE}|{DIGITE})*
 
